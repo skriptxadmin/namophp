@@ -22,6 +22,13 @@ class Controller
 
         $this->smarty->assign('framework_name', 'NAMO PHP');
 
+        $this->smarty->registerFilter("output", [$this, "minify_html"]);
+
+    }
+
+    function minify_html($tpl_output,  $template) {
+        $tpl_output = preg_replace('![\t ]*[\r\n]+[\t ]*!', '', $tpl_output);
+        return $tpl_output;
     }
 
     public function view($view, $args = null)
