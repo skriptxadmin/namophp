@@ -74,48 +74,31 @@ Use database/seed.php and example of users seed
 
 ### Session ###
 
-`
+```
 use Josantonius\Session\Session;
-
 $session = new Session();
-
 $username = $session->get('username'); 
-
-`
+```
 ### Logger ###
 
-`
+```
 use App\Helpers\Logger;
-
 $logger = new Logger();
-
 $logger->error("Your error message")
-
-`
+```
 
 ### S3 Storage ###
 
-`
+```
 use App\Helpers\S3;
-
- 
 $path = $_FILES['image']['name'];
-
 $ext = pathinfo($path, PATHINFO_EXTENSION);
-
 $filename = uniqid().'.'.$ext;
-
 $key  = $username.'/'.$filename;
-
 $args = [    'Key' => $key,
 'ACL'    => 'public-read',
 'SourceFile' => $_FILES['image']["tmp_name"]];
-
 $s3 = new S3;
-
 $store = $s3->put($args);
-
 $url = $s3->getUrl($key);
-
-
-`
+```
