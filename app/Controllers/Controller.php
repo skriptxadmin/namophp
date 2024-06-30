@@ -68,4 +68,9 @@ class Controller
 
         return;
     }
+
+    public function redirect($path){
+
+        header('Location: '.$_ENV['SITE_URL'].'/'.$path);
+    }
 }

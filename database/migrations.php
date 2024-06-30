@@ -63,7 +63,7 @@ Capsule::schema()->create('users', function ($table) {
     $table->string('email', 50)->unique();
     $table->string('mobile', 10)->unique();
     $table->string('username', 20)->unique();
-    $table->string('password', 20);
+    $table->text('password');
     $table->boolean('blocked')->default(0)->nullable();
     $table->integer('created_by')->default(1)->nullable();
     $table->integer('updated_by')->default(1)->nullable();
