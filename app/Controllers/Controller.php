@@ -57,4 +57,15 @@ class Controller
 
         $this->smarty->display($view.'.html');
     }
+
+    public function json($data, $error_code = 200){
+
+        header('Content-Type: application/json; charset=utf-8');
+        
+        http_response_code($error_code);
+
+        echo json_encode($data);
+
+        return;
+    }
 }

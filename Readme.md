@@ -173,3 +173,54 @@ $router->before('GET|POST|PUT|DELETE', '/ajax/.*', function(){
 });
 
 ```
+
+### Response ###
+
+To render view
+
+```
+$this->view('path/file', $data);
+```
+
+To render json
+
+```
+$this->json($data);
+```
+
+To render error json
+
+```
+$this->json($data, 422);
+```
+
+### Validation ###
+
+Load in the controller
+
+```
+use App\Helpers\Validators\Validator;
+
+```
+
+Then 
+
+```
+ $validator = new Validator();
+
+$rules = [
+    'username' => 'required',
+    'password' => 'required',
+];
+
+
+$errors = $validator->validate($_POST, $rules);
+
+if($errors !== true){
+
+    $this->json(['success' => false, 'errors' => $errors], 422);
+
+    return;
+}
+
+```
