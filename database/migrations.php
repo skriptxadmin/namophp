@@ -45,14 +45,6 @@ $capsule->setAsGlobal();
  *
  */
 
-Capsule::schema()->dropIfExists('users'); 
-
-Capsule::schema()->create('users', function ($table) {
-    $table->increments('id');
-    $table->string('name')->unique();
-    $table->timestamps();
-});
-
 Capsule::schema()->dropIfExists('roles');
 
 Capsule::schema()->create('roles', function ($table) {
@@ -60,3 +52,22 @@ Capsule::schema()->create('roles', function ($table) {
     $table->string('name')->unique();
     $table->timestamps();
 });
+
+
+Capsule::schema()->dropIfExists('users'); 
+
+Capsule::schema()->create('users', function ($table) {
+    $table->increments('id');
+    $table->integer('role_id');
+    $table->string('name', 50)->unique();
+    $table->string('email', 50)->unique();
+    $table->string('mobile', 10)->unique();
+    $table->string('username', 20)->unique();
+    $table->string('password', 20);
+    $table->boolean('blocked')->default(0)->nullable();
+    $table->integer('created_by')->default(1)->nullable();
+    $table->integer('updated_by')->default(1)->nullable();
+    $table->timestamps();
+    $table->softDeletes();
+});
+

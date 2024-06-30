@@ -80,9 +80,8 @@ We use illuminate/database, from laravel framework. If you are not familiar with
 
 select the driver (sqlite or mysql) in the .env file
 
-update the details on respective block
+Refer App\Models\User for mutators and accessors
 
-in database/migrations.php and app/Models/Model.php
 
 ### Seeding ###
 

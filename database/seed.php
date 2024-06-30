@@ -4,8 +4,7 @@ define ('ROOT_DIR', __DIR__.'/../');
 
 require __DIR__.'/../vendor/autoload.php';
 
-use App\Models\User;
 
-$row  =  new User;
-$row->name = "NAMO PHP";
-$row->save();
+require(__DIR__.'/./seeds/1-roles.php');
+
+require(__DIR__.'/./seeds/1-users.php');
