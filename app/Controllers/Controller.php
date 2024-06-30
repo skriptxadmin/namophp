@@ -18,11 +18,24 @@ class Controller
 
         $this->smarty->assign('site_url', $_ENV['SITE_URL']);
 
+        $this->smarty->assign('site_title', $_ENV['SITE_TITLE']);
+
         $this->smarty->assign('app_version', $_ENV['APP_VERSION']);
 
-        $this->smarty->assign('framework_name', 'NAMO PHP');
+        $this->smarty->assign('csrf_token', csrf_token());
+
+        $this->smarty->assign('meta_title', $_ENV['META_TITLE']);
+
+        $this->smarty->assign('meta_description', $_ENV['META_DESCRIPTION']);
+
+        $actual_link = (empty($_SERVER['HTTPS']) ? 'http' : 'https') . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+
+        $this->smarty->assign('meta_url', $actual_link);
+
+        $this->smarty->assign('meta_image', $_ENV['META_IMAGE']);
 
         $this->smarty->registerFilter("output", [$this, "minify_html"]);
+
 
     }
 

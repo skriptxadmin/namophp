@@ -120,3 +120,56 @@ $s3 = new S3;
 $store = $s3->put($args);
 $url = $s3->getUrl($key);
 ```
+
+### CSRF TOKEN ###
+
+This software includes
+`
+https://github.com/orkhanshukurlu/php-csrf
+`
+This does not require any settings. Just add below lines
+
+To generate csrf token in smarty variables, add in App\Controllers\Controller.php
+
+```
+$this->smarty->assign('csrf_token', csrf_token());
+
+```
+
+To get csrf token on meta tags
+
+```
+<meta name="csrf-token" content="{$csrf_token}">
+```
+
+To send csrf token in ajax use
+
+```
+jQuery(document).on("ajaxSend", function (event, jqxhr, settings) {
+    const token = jQuery("meta[name='csrf-token']").attr("content");
+    jqxhr.setRequestHeader('X-CSRF-TOKEN', token);
+});
+
+```
+
+To check csrf token as middleware use
+
+```
+
+$router->before('GET|POST|PUT|DELETE', '/ajax/.*', function(){
+
+    $headers = apache_request_headers();
+
+    $arr['_token'] = !empty($headers['X-CSRF-TOKEN'])?$headers['X-CSRF-TOKEN']:NULL;
+   
+    if(empty($arr['_token']) || !csrf_validate($arr)){
+
+            $data = ['message' => 'CSRF token mismatch'];
+    
+            before_middleware_throw_ajax_error($data);
+    
+            exit();
+    }
+});
+
+```
