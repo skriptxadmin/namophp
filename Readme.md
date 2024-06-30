@@ -13,6 +13,24 @@ Discover Namo, the lightweight PHP framework designed for developers who value p
 
 `npm install`
 
+### Setup ###
+
+update .env file with your base site url, app version and database details
+
+If you are using xampp, point to public folder
+
+```
+SITE_URL="http://localhost/namo/public"
+APP_VERSION=3.0.0 
+```
+
+While production use, point your entry file as public/index.
+
+Update the timezone in public/index.php
+
+```
+date_default_timezone_set('Asia/Kolkata');
+```
 
 ### Routing ###
 

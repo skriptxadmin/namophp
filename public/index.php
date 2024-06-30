@@ -2,6 +2,8 @@
 
 define('ROOT_DIR', __DIR__.'/../');
 
+date_default_timezone_set('Asia/Kolkata');
+
 require ROOT_DIR.'vendor/autoload.php';
 
 use Josantonius\Session\Session;

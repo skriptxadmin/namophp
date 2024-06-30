@@ -45,7 +45,7 @@ $capsule->setAsGlobal();
  *
  */
 
-Capsule::schema()->drop('users'); //only if you want to delete the table
+Capsule::schema()->dropIfExists('users'); 
 
 Capsule::schema()->create('users', function ($table) {
     $table->increments('id');
@@ -53,11 +53,10 @@ Capsule::schema()->create('users', function ($table) {
     $table->timestamps();
 });
 
-Capsule::schema()->drop('roles'); //only if you want to delete the table
+Capsule::schema()->dropIfExists('roles');
 
 Capsule::schema()->create('roles', function ($table) {
     $table->increments('id');
     $table->string('name')->unique();
-    $table->string('test')->unique();
     $table->timestamps();
 });
