@@ -2,3 +2,4 @@ node_modules
 vendor
 public/templates_c
 logs
+.env
