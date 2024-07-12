@@ -5,12 +5,18 @@ namespace App\Models;
 use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Model extends \Illuminate\Database\Eloquent\Model
 {
 
+    use SoftDeletes;
+
     public function __construct()
     {
+        parent::__construct();
+
         $capsule = new Capsule;
 
         $driver = $_ENV['DATABASE_DRIVER'];
