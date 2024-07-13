@@ -25,6 +25,7 @@
         "polarising/bcrypt": "^1.0",
         "aws/aws-sdk-php": "^3.315",
         "monolog/monolog": "^3.7",
-        "nesbot/carbon": "^3.6"
+        "nesbot/carbon": "^3.6",
+         "illuminate/pagination": "^11.14"
     }
 }

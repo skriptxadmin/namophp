@@ -7,6 +7,7 @@ use Rakit\Validation\Validator as RakitValidator;
 
 class Validator{
 
+    public $validated = NULL;
 
     public function validate($data, $rules){
 
@@ -23,6 +24,9 @@ class Validator{
             return $errors->all();
         }
 
+        $this->validated = $validation->getValidatedData();
+
+        
         return true;
 
     }

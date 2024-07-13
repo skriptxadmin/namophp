@@ -34,6 +34,8 @@ class Controller
 
         $this->smarty->assign('meta_image', $_ENV['META_IMAGE']);
 
+        $this->smarty->assign('bodyClass', '');
+
         $this->smarty->registerFilter("output", [$this, "minify_html"]);
 
 
