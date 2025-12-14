@@ -1,8 +1,1 @@
-/******/ (() => { // webpackBootstrap
-var __webpack_exports__ = {};
-/*!****************************!*\
-  !*** ./src/scripts/app.js ***!
-  \****************************/
-
-/******/ })()
-;
+console.log(" I am from public/scripts/app.js")

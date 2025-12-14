@@ -1,31 +1,22 @@
 {
-    "name": "skriptx/namophp",
-    "version": "2.0.0",
+    "require": {
+        "slim/slim": "4.*",
+        "slim/psr7": "^1.7",
+        "vlucas/phpdotenv": "^5.6",
+        "monolog/monolog": "^3.9",
+        "catfan/medoo": "^2.2",
+        "rakit/validation": "^1.4",
+        "firebase/php-jwt": "^6.11",
+        "nesbot/carbon": "^3.10",
+        "aws/aws-sdk-php": "^3.321",
+        "smarty/smarty": "^5.4",
+        "lodash-php/lodash-php": "^0.09.0",
+        "razorpay/razorpay": "2.*",
+        "guzzlehttp/guzzle": "^7.9"
+    },
     "autoload": {
         "psr-4": {
-            "App\\": "app/"
+            "App\\": "src/"
         }
-    },
-    "authors": [
-        {
-            "name": "Alaksandar Jesus",
-            "email": "alaksandrjesus@yahoo.co.in"
-        }
-    ],
-    "require": {
-        "smarty/smarty": "^5.1",
-        "vlucas/phpdotenv": "^5.6",
-        "illuminate/database": "^11.8",
-        "illuminate/events": "^11.8",
-        "bramus/router": "~1.6",
-        "josantonius/session": "^2.0",
-        "orkhanshukurlu/php-csrf": "^1.0",
-        "rakit/validation": "^1.4",
-        "lodash-php/lodash-php": "^0.09.0",
-        "polarising/bcrypt": "^1.0",
-        "aws/aws-sdk-php": "^3.315",
-        "monolog/monolog": "^3.7",
-        "nesbot/carbon": "^3.6",
-         "illuminate/pagination": "^11.14"
     }
 }

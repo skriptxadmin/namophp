@@ -1,225 +1,92 @@
-## NAMO PHP Framework: Power in Simplicity ##
+Here's a sample `README.md` file for your **NAMO** PHP framework:
 
-Discover Namo, the lightweight PHP framework designed for developers who value performance and efficiency. With its small footprint, Namo delivers the core features you need to build robust applications without the overhead. Enjoy an intuitive routing system, elegant ORM, built-in authentication, and a powerful templating engine—all while keeping your code clean and maintainable. Namo PHP Framework offers the perfect balance of simplicity and power, making it the ideal choice for modern web development.
+---
 
-### Download Instructions ###
+````markdown
+# 🧩 NAMO - Lightweight PHP API Framework
 
-`git clone https://github.com/skriptxadmin/namophp.git`
+**NAMO** is a lightweight and powerful PHP micro-framework built on top of [Slim 4](https://www.slimframework.com/) designed specifically for building robust, secure, and scalable APIs. It comes pre-integrated with essential features like **JWT authentication**, **input validation**, **middleware support**, **logging**, and a **PDO wrapper** for database operations — everything you need to get started with your next API project quickly.
 
+---
 
-### Install Instructions ###
+## ✨ Features
 
-`composer update`
+- 🔐 **JWT Authentication** out of the box
+- 🧰 **Validation** powered by Rakit\Validation
+- ⚙️ **Middleware** for auth, CORS, etc.
+- 📦 **PDO Wrapper** for clean and easy DB access, powered by Medoo
+- 📝 **Monolog Logger** for debugging and application logs
+- 🔄 Sample codes to help you bootstrap your API
 
-`npm install`
+---
 
-### Setup ###
+## 🚀 Getting Started
 
-update .env file with your base site url, app version and database details
+### 1. Clone the repo
 
-If you are using xampp, point to public folder
+```bash
+git clone https://github.com/skriptxadmin/namophp.git
 
+cd NAMOPHP
 ```
-SITE_URL="http://localhost/namo/public"
-APP_VERSION=3.0.0 
-```
+````
 
-While production use, point your entry file as public/index.
+### 2. Install dependencies via Composer
 
-Update the timezone in public/index.php
-
-```
-date_default_timezone_set('Asia/Kolkata');
-```
-
-### Routing ###
-
-Routing can be specified in
-
-`app/Routes/web.php` 
-
-and 
-
-`app/Routes/api.php`
-
-We use Braums Router and documentation can be found from
-
-`https://github.com/bramus/router`
-
-
-### Accessing .env variables ###
-
-You can access the .env variables as $_ENV['key']
-
-example you can see in app/Controllers/controller
-
-
-### JS and CSS files ###
-
-This framework uses webpack mix and hot reload is not implemented.
-
-The files can be found in src/scripts and src/styles
-
-
-#### For Development ####
-
-
-`npm start` 
-
-
-#### For Production ####
-
-`npm run prod`
-
-
-## Advanced ##
-
-We use illuminate/database, from laravel framework. If you are not familiar with migrations and seeding, use some UI for easy development
-
-### Migrations ###
-
-select the driver (sqlite or mysql) in the .env file
-
-Refer App\Models\User for mutators and accessors
-
-
-### Seeding ###
-
-Use database/seed.php and example of users seed
-
-## Version 3 ##
-
-### Session ###
-
-```
-use Josantonius\Session\Session;
-$session = new Session();
-$username = $session->get('username'); 
-```
-### Logger ###
-
-```
-use App\Helpers\Logger;
-$logger = new Logger();
-$logger->error("Your error message")
+```bash
+composer install
 ```
 
-### S3 Storage ###
+### 3. Setup Environment
 
-```
-use App\Helpers\S3;
-$path = $_FILES['image']['name'];
-$ext = pathinfo($path, PATHINFO_EXTENSION);
-$filename = uniqid().'.'.$ext;
-$key  = $username.'/'.$filename;
-$args = [    'Key' => $key,
-'ACL'    => 'public-read',
-'SourceFile' => $_FILES['image']["tmp_name"]];
-$s3 = new S3;
-$store = $s3->put($args);
-$url = $s3->getUrl($key);
+Copy `.env.example` to `.env` and update the variables (DB, JWT secret, etc.)
+
+```bash
+cp .env.example .env
 ```
 
-### CSRF TOKEN ###
+Update `.env`:
 
-This software includes
-`
-https://github.com/orkhanshukurlu/php-csrf
-`
-This does not require any settings. Just add below lines
-
-To generate csrf token in smarty variables, add in App\Controllers\Controller.php
-
-```
-$this->smarty->assign('csrf_token', csrf_token());
+```env
 
 ```
 
-To get csrf token on meta tags
+---
 
-```
-<meta name="csrf-token" content="{$csrf_token}">
-```
+## 📚 More Examples
 
-To send csrf token in ajax use
+- [x] User Registration & Login with JWT
+- [x] Protected Profile Route
+- [x] Form Validation Example
+- [x] Middleware for Logging Requests
 
-```
-jQuery(document).on("ajaxSend", function (event, jqxhr, settings) {
-    const token = jQuery("meta[name='csrf-token']").attr("content");
-    jqxhr.setRequestHeader('X-CSRF-TOKEN', token);
-});
+---
 
-```
+## 🧱 Built With
 
-To check csrf token as middleware use
+- [Slim 4](https://www.slimframework.com/)
+- [Rakit\Validation](https://github.com/rakit/validation)
+- [Firebase JWT](https://github.com/firebase/php-jwt)
+- [Monolog](https://github.com/Seldaek/monolog)
+- [Medoo] (https://github.com/catfan/Medoo)
 
-```
+---
 
-$router->before('GET|POST|PUT|DELETE', '/ajax/.*', function(){
+## 🤝 Contributing
 
-    $headers = apache_request_headers();
+Pull requests are welcome. For major changes, please open an issue first.
 
-    $arr['_token'] = !empty($headers['X-CSRF-TOKEN'])?$headers['X-CSRF-TOKEN']:NULL;
-   
-    if(empty($arr['_token']) || !csrf_validate($arr)){
+---
 
-            $data = ['message' => 'CSRF token mismatch'];
-    
-            before_middleware_throw_ajax_error($data);
-    
-            exit();
-    }
-});
+## 📄 License
 
-```
+This project is open-source and available under the [MIT License](LICENSE).
 
-### Response ###
+---
 
-To render view
+## 👤 Author
 
-```
-$this->view('path/file', $data);
-```
+**Alaksandar Jesus Gene AMS**
+Entrepreneur, Developer — [skriptx.com](https://skriptx.com)
 
-To render json
-
-```
-$this->json($data);
-```
-
-To render error json
-
-```
-$this->json($data, 422);
-```
-
-### Validation ###
-
-Load in the controller
-
-```
-use App\Helpers\Validators\Validator;
-
-```
-
-Then 
-
-```
- $validator = new Validator();
-
-$rules = [
-    'username' => 'required',
-    'password' => 'required',
-];
-
-
-$errors = $validator->validate($_POST, $rules);
-
-if($errors !== true){
-
-    $this->json(['success' => false, 'errors' => $errors], 422);
-
-    return;
-}
-
-```
+---

@@ -1,0 +1,30 @@
+
+<footer>
+  <!-- Copyright -->
+  <div class="mt4 tc f6 white-70">
+    © {$smarty.now|date_format:"%Y"} {env var='APP_TITLE'}. All rights reserved.
+  </div>
+</footer>
+
+
+{nocache}
+
+<script>
+    window.appLocals = {
+        url: '{$url}',
+        ajax: '{$url}/ajax/',
+        isUserLoggedIn: {$isUserLoggedIn},
+        production:{$isProduction},
+        recaptchaSiteKey:"{env var='GOOGLE_CAPTCHA_SITE_KEY'}"
+       
+    };
+    
+
+</script>
+
+    {/nocache}
+
+
+{js file="scripts/app.js"}
+
+{block name="scripts"}{/block}

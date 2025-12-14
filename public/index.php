@@ -1,34 +1,117 @@
 <?php
 
-define('ROOT_DIR', __DIR__.'/../');
+define('ABSPATH', __DIR__ . '/..');
 
+session_start();
 
-require ROOT_DIR.'vendor/autoload.php';
+require ABSPATH . '/vendor/autoload.php';
 
-use Josantonius\Session\Session;
+use App\Middlewares\Globals\CorsMiddleware;
+use App\Middlewares\Globals\RateLimitMiddleware;
+use App\Middlewares\Globals\LoggerMiddleware;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Exception\HttpMethodNotAllowedException;
+use Slim\Exception\HttpNotFoundException;
+use Slim\Factory\AppFactory;
 
-use App\Helpers\Logger;
-
-$dotenv = \Dotenv\Dotenv::createImmutable(ROOT_DIR);
+$dotenv = \Dotenv\Dotenv::createImmutable(ABSPATH);
 
 $dotenv->load();
 
-date_default_timezone_set($_ENV['TIMEZONE']);
+date_default_timezone_set($_ENV['APP_TIMEZONE']);
 
-$session = new Session();
+$app = AppFactory::create();
 
-$session->start();
+$app->options('/{routes:.+}', function ($request, $response, $args) {
+    return $response;
+});
 
-$logger = new Logger();
+$app->add(new CorsMiddleware());
+$app->add(new RateLimitMiddleware());
 
-$actual_link = (empty($_SERVER['HTTPS']) ? 'http' : 'https') . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+$app->addBodyParsingMiddleware();
 
-$logger->info($actual_link, ['routing'], ['public/index']);
+require ABSPATH . '/src/Routes/web.php';
+require ABSPATH . '/src/Routes/ajax.php';
+require ABSPATH . '/src/Routes/api.php';
 
-$router = new \Bramus\Router\Router();
+$app->add(new LoggerMiddleware());
 
-require ROOT_DIR.'routes/web.php';
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$router->set404('\App\Controllers\PageNotFoundController@index');
+$errorMiddleware->setErrorHandler(HttpNotFoundException::class,
+    function (Request $request, Throwable $exception, bool $displayErrorDetails) use ($app) {
+        $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
 
-$router->run();
+        $response = $app->getResponseFactory()->createResponse();
+
+        if ($isAjax) {
+            $payload = ['error' => 'Unidentified Route'];
+            $response->getBody()->write(json_encode($payload));
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(404);
+        }
+
+        $routeParser = $app->getRouteCollector()->getRouteParser();
+        $url         = $routeParser->urlFor('web.404');
+
+        return $response
+            ->withHeader('Location', $url)
+            ->withStatus(302); // redirect to 404 page
+    }
+);
+
+$errorMiddleware->setErrorHandler(HttpMethodNotAllowedException::class,
+    function (Request $request, Throwable $exception, bool $displayErrorDetails) use ($app) {
+        $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
+
+        $response = $app->getResponseFactory()->createResponse();
+
+        if ($isAjax) {
+            $payload = ['error' => 'Unidentified Route'];
+            $response->getBody()->write(json_encode($payload));
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(404);
+        }
+
+        $routeParser = $app->getRouteCollector()->getRouteParser();
+        $url         = $routeParser->urlFor('web.404');
+
+        return $response
+            ->withHeader('Location', $url)
+            ->withStatus(302); // redirect to 404 page
+    }
+);
+
+$errorMiddleware->setDefaultErrorHandler(
+    function (Request $request, Throwable $exception, bool $displayErrorDetails) use ($app) {
+
+        $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
+
+        $response = $app->getResponseFactory()->createResponse();
+
+        $logger = new \App\Helpers\Logger('error');
+        $uri = $request->getUri();
+        $errorMessage = $exception->getMessage();
+        $logger->error($uri, [$errorMessage]);
+
+        if ($isAjax) {
+            $payload = ['error' => 'Application Error', 'message' => $exception->getMessage()];
+            $response->getBody()->write(json_encode($payload));
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(404);
+        }
+
+        $routeParser = $app->getRouteCollector()->getRouteParser();
+        $url         = $routeParser->urlFor('web.500');
+       
+        return $response
+            ->withHeader('Location', $url)
+            ->withStatus(302); // redirect to 404 page
+    }
+);
+
+$app->run();

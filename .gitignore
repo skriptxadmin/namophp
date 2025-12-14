@@ -1,5 +1,5 @@
-node_modules
-vendor
-public/templates_c
-logs
 .env
+vendor
+logger
+smarty
+json_cache
