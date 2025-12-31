@@ -34,7 +34,7 @@ cd NAMOPHP
 ### 2. Install dependencies via Composer
 
 ```bash
-composer install
+composer update
 ```
 
 ### 3. Setup Environment
@@ -48,7 +48,20 @@ cp .env.example .env
 Update `.env`:
 
 ```env
+APP_ENV=local   #production or local or dev
+```
 
+All static files need to be placed in public folder
+
+Default way of linking css file
+
+```html
+<link rel="stylesheet" href="{$url}/styles/app.css">
+```
+
+```php
+{css file="styles/app.css"}
+{js file="scripts/app.js"}
 ```
 
 ---
@@ -72,6 +85,80 @@ Update `.env`:
 
 ---
 
+## Writing validation code
+
+```php
+
+
+    $validator = new \App\Helpers\Validator();
+    $data      = $request->getParsedBody();
+    $rules     = [
+        'pin' => 'required|min:6|max:6|regex:/^[1-9][0-9]*$/',
+    ];
+    $messages = [
+
+    ];
+    $validationResult = $validator->make($data, $rules, $messages);
+    if ($validationResult !== true) {
+        return $this->json(['errors' => $validationResult], 422);
+    }
+    $validData = $validator->validData;
+
+
+
+```
+
+### Getting request user from the middleware
+
+```php
+
+        $uid = $request->getAttribute('uid');
+
+```
+
+### MySQL query (alias with medoo)
+
+```php
+        $rows = $this->db->select('table-name', '*');
+
+        $rows = $this->db->select('table-name', ['id','name']);
+
+        $rows = $this->db->select('table-name', 'id');
+
+        $rows = $this->db->select('table-name', 'id', ['id'=> 3]);
+
+        $rows = $this->db->get('table-name', 'id', ['id'=> 3]);
+
+        $rows = $this->db->insert('table-name', $data);
+
+        $rows = $this->db->update('table-name', $data, $where);
+
+        $rows = $this->db->delete('table-name', $where);
+
+```
+### Dynamic routing
+```php
+
+    $group->get('/{slug}', [App\Controllers\Roles\IndexController::class, 'get'])->setName('roles.get');
+
+```
+
+### Get slug value in controller
+
+```php
+    public function get(Request $request, Response $response, array $args): Response
+    {
+
+        $slug = $args['slug'];
+
+        $row = $this->db->get('roles', '*' ,['slug' => $slug]);
+
+        return $this->json($row);
+
+    }
+
+```
+
 ## 🤝 Contributing
 
 Pull requests are welcome. For major changes, please open an issue first.
@@ -83,6 +170,8 @@ Pull requests are welcome. For major changes, please open an issue first.
 This project is open-source and available under the [MIT License](LICENSE).
 
 ---
+
+
 
 ## 👤 Author
 

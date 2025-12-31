@@ -3,6 +3,7 @@ namespace App\Helpers;
 
 use Firebase\JWT\JWT as FirebaseJWT;
 use Firebase\JWT\Key;
+use Carbon\Carbon;
 
 class JWT
 {
@@ -77,5 +78,27 @@ class JWT
         
         return $row;
 
+    }
+
+     public function set_refresh_token($uid)
+    {
+
+        $dbconn = new \App\Helpers\DB;
+
+        do {
+
+            $token = bin2hex(random_bytes(32));
+
+            $count = $dbconn->db->count('users', ['refresh_token' => $token]);
+
+        } while ($count);
+
+        $now = Carbon::now()->toDateTimeString();
+
+        $args = ['refresh_token' => $token, 'refresh_token_updated_at' => $now];
+
+        $dbconn->db->update('users', $args, ['id' => $uid]);
+
+        return $token;
     }
 }

@@ -28,6 +28,7 @@ $app->options('/{routes:.+}', function ($request, $response, $args) {
 
 $app->add(new CorsMiddleware());
 $app->add(new RateLimitMiddleware());
+$app->addRoutingMiddleware();
 
 $app->addBodyParsingMiddleware();
 
@@ -41,11 +42,14 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
 $errorMiddleware->setErrorHandler(HttpNotFoundException::class,
     function (Request $request, Throwable $exception, bool $displayErrorDetails) use ($app) {
-        $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
-
+       
         $response = $app->getResponseFactory()->createResponse();
+  $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
 
-        if ($isAjax) {
+            $accept = $request->getHeaderLine('Accept');
+        $isJson = str_contains($accept, 'application/json');
+
+        if ($isAjax || $isJson) {
             $payload = ['error' => 'Unidentified Route'];
             $response->getBody()->write(json_encode($payload));
             return $response
@@ -64,11 +68,15 @@ $errorMiddleware->setErrorHandler(HttpNotFoundException::class,
 
 $errorMiddleware->setErrorHandler(HttpMethodNotAllowedException::class,
     function (Request $request, Throwable $exception, bool $displayErrorDetails) use ($app) {
-        $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
-
+       
         $response = $app->getResponseFactory()->createResponse();
 
-        if ($isAjax) {
+         $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
+
+            $accept = $request->getHeaderLine('Accept');
+        $isJson = str_contains($accept, 'application/json');
+
+        if ($isAjax || $isJson) {
             $payload = ['error' => 'Unidentified Route'];
             $response->getBody()->write(json_encode($payload));
             return $response
@@ -88,7 +96,6 @@ $errorMiddleware->setErrorHandler(HttpMethodNotAllowedException::class,
 $errorMiddleware->setDefaultErrorHandler(
     function (Request $request, Throwable $exception, bool $displayErrorDetails) use ($app) {
 
-        $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
 
         $response = $app->getResponseFactory()->createResponse();
 
@@ -97,7 +104,12 @@ $errorMiddleware->setDefaultErrorHandler(
         $errorMessage = $exception->getMessage();
         $logger->error($uri, [$errorMessage]);
 
-        if ($isAjax) {
+        $isAjax = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
+
+            $accept = $request->getHeaderLine('Accept');
+        $isJson = str_contains($accept, 'application/json');
+
+        if ($isAjax || $isJson) {
             $payload = ['error' => 'Application Error', 'message' => $exception->getMessage()];
             $response->getBody()->write(json_encode($payload));
             return $response
