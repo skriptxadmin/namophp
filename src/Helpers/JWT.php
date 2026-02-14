@@ -76,7 +76,9 @@ class JWT
 
         $row = $dbconn->db->get('users', 'id', ['email' => $decoded->data->email]);
         
-        return $row;
+        
+        return $row?intval($row):'Invalid User';
+        
 
     }
 

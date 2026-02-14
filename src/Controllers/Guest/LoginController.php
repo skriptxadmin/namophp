@@ -58,7 +58,7 @@ class LoginController extends Controller
 
         }
 
-        $_SESSION['userId'] = $user->id;
+        $_SESSION['user_id'] = $user->id;
 
 
         $redirect = $_ENV['APP_URL'] . '/dashboard';

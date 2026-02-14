@@ -8,7 +8,7 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
 class UserMiddleware implements MiddlewareInterface
 {
-     private $args;
+    private $args;
 
     public function __construct($args = null)
     {
@@ -20,25 +20,23 @@ class UserMiddleware implements MiddlewareInterface
         // Optional: Handle the incoming request
         // ...
 
-        if (empty($_SESSION['userId'])) {
+        if (empty($_SESSION['user_id'])) {
             $payload = json_encode(['error' => 'You are not authorized to perform this action']);
 
             $response = new \Slim\Psr7\Response();
 
             $response->getBody()->write($payload);
-    
+
             return $response
-                      ->withHeader('Content-Type', 'application/json')
-                      ->withStatus(422);
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(422);
         }
 
-         $uid = $_SESSION['userId'];
+        $uid = $_SESSION['user_id'];
 
-            $dbconn = new \App\Helpers\DB;
+        $dbconn = new \App\Helpers\DB;
 
-
-          if (! empty($this->args)) {
-
+        if (! empty($this->args)) {
 
             $where = ['u.id' => $uid];
 
@@ -50,38 +48,36 @@ class UserMiddleware implements MiddlewareInterface
 
             $role = $dbconn->db->get('users(u)', $join, $select, $where);
 
-            if (empty($role) || !in_array($role, $this->args)) {
+            if (empty($role) || ! in_array($role, $this->args)) {
 
-              $payload = json_encode(['error' => 'You are not authorized to perform this action']);
+                $payload = json_encode(['error' => 'You are not authorized to perform this action']);
 
-            $response = new \Slim\Psr7\Response();
+                $response = new \Slim\Psr7\Response();
 
-            $response->getBody()->write($payload);
-    
-            return $response
-                      ->withHeader('Content-Type', 'application/json')
-                      ->withStatus(422);
+                $response->getBody()->write($payload);
+
+                return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(422);
             }
 
         }
-        
-                      $count = $dbconn->db->count('users', ['blocked_at[!]'=> NULL,'id'=>$uid]);
 
+        $count = $dbconn->db->count('users', ['blocked_at[!]' => null, 'id' => $uid]);
 
-            if($count){
+        if ($count) {
 
-               $payload = json_encode(['error' => 'You are not authorized to perform this action']);
+            $payload = json_encode(['error' => 'You are not authorized to perform this action']);
 
             $response = new \Slim\Psr7\Response();
 
             $response->getBody()->write($payload);
-    
+
             return $response
-                      ->withHeader('Content-Type', 'application/json')
-                      ->withStatus(422);
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(422);
 
-            }
-
+        }
 
         $request = $request->withAttribute('uid', $uid);
 
