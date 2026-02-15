@@ -11,7 +11,7 @@
                 "INT(10)",
                 "NOT NULL",
             ],
-             'slug' => [
+             'username' => [
                 "VARCHAR(50)",
                 "NOT NULL",
                 'UNIQUE'

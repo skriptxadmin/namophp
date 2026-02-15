@@ -13,11 +13,11 @@ class UploadController extends Controller
 
         $validator = new \App\Helpers\Validator();
 
-         $uid = $request->getAttribute('user_id');
+        $user_id = $request->getAttribute('user_id');
 
         $rules = [
-            'file' => 'required',
-            'folder' => 'required'
+            'file'   => 'required',
+            'folder' => 'nullable',
         ];
         $messages = [
 
@@ -26,7 +26,8 @@ class UploadController extends Controller
         $validationResult = $validator->make($_POST + $_FILES, $rules, $messages);
 
         if ($validationResult !== true) {
-            return $this->respond(['errors' => $validationResult], 409);
+
+            return $this->json(['errors' => $validationResult], 409);
         }
 
         $validData = $validator->validData;
@@ -35,7 +36,7 @@ class UploadController extends Controller
 
         $s3 = new \App\Helpers\S3;
 
-        $slug = $this->db->get('users', 'slug', ['id' => $uid]);
+        $username = $this->db->get('users', 'username', ['id' => $user_id]);
 
         $uploadedFile = $uploadedFiles['file'];
 
@@ -45,10 +46,16 @@ class UploadController extends Controller
 
         $nameWithoutExt = pathinfo($filename, PATHINFO_FILENAME);
 
-        $file = $nameWithoutExt.'-'.uniqid() . '.' . strtolower($ext);
-        
+        $file = $nameWithoutExt . '-' . uniqid() . '.' . strtolower($ext);
+
         // Generate new key
-        $key = $validData->folder.'/'. $slug . "/" . $file;
+        $key = $username . "/" . $file;
+
+        if ($validData->folder) {
+
+            $key = $validData->folder . '/' . $username . "/" . $file;
+
+        }
 
         $args = [
             'Key'         => $key,                                // Folder + filename in S3
@@ -63,14 +70,50 @@ class UploadController extends Controller
             return $this->json(['error' => 'Unable to upload file.'], 409);
         }
 
-        $url = $s3->getPresignedUrl($key);
+        $this->db->insert('uploads', ['user_id' => $user_id, 'key' => $key]);
+
+        return $this->json(['key' => $key]);
+    }
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+
+        $validator = new \App\Helpers\Validator();
+
+        $data = $request->getParsedBody();
+
+        $rules = [
+            'key' => 'required|exists:uploads,key',
+        ];
+        $messages = [
+
+        ];
+
+        $validationResult = $validator->make($data, $rules, $messages);
+
+        if ($validationResult !== true) {
+
+            return $this->json(['errors' => $validationResult], 409);
+        }
+
+        $validData = $validator->validData;
+
+        $s3 = new \App\Helpers\S3;
+
+        if(!$s3->doesObjectExist($validData->key)){
+
+            return $this->json(['error' => 'Invalid file to get'], 422);
+        }
+
+        $url = $s3->getPresignedUrl($validData->key);
 
         if (empty($url)) {
 
             return $this->json(['error' => 'Unable to retrieve url'], 409);
         }
 
-        return $this->json(['url' => $url, 'file' => $file]);
+        return $this->json(['url' => $url]);
+
     }
 
     public function remove(Request $request, Response $response, array $args): Response
@@ -81,7 +124,8 @@ class UploadController extends Controller
         $data = $request->getParsedBody();
 
         $rules = [
-            'file' => 'required',
+
+            'key' => 'required|exists:uploads,key',
         ];
         $messages = [
 
@@ -90,28 +134,40 @@ class UploadController extends Controller
         $validationResult = $validator->make($data, $rules, $messages);
 
         if ($validationResult !== true) {
-            return $this->respond(['errors' => $validationResult], 409);
+
+            return $this->json(['errors' => $validationResult], 409);
         }
 
         $validData = $validator->validData;
 
-         $uid = $request->getAttribute('user_id');
+        $user_id = $request->getAttribute('user_id');
+
+        $count = $this->db->count('uploads', ['key' => $validData->key, 'user_id'=>$user_id]);
+
+        if(!$count){
+
+            return $this->json(['error' => 'Invalid authorization to delete'], 422);
+        }
 
         $s3 = new \App\Helpers\S3;
 
-        $slug = $this->db->get('users', 'slug', ['id' => $uid]);
+        if(!$s3->doesObjectExist($validData->key)){
 
-         $key = $slug . "/" . $validData->file;
+            return $this->json(['error' => 'Invalid file to delete'], 422);
+        }
 
-            $args = [
-            'Key'         => $key,                                // Folder + filename in S3
+        $args = [
+            'Key' => $validData->key, // Folder + filename in S3
         ];
 
         $result = $s3->delete($args);
 
-        if(empty($result)){
+        if (empty($result)) {
+
             return $this->json(['error' => 'Unable to remove file']);
         }
+
+        $this->db->update('uploads', ['user_id'=>-1], ['key' => $validData->key]);
 
         return $this->json(['message' => 'Removed file successfully']);
 
