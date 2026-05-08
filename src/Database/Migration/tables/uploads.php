@@ -11,8 +11,20 @@ return [
         "INT(10)",
         "NOT NULL",
     ],
+     'filename'        => [
+        "TEXT",
+        "NULL",
+    ],
     'key'        => [
         "TEXT",
+        "NULL",
+    ],
+    'mime'       => [
+        "TEXT",
+        "NULL",
+    ],
+    'size'       => [
+        "INT(10)",
         "NULL",
     ],
     'created_at' => [

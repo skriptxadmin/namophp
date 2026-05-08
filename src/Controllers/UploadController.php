@@ -16,7 +16,7 @@ class UploadController extends Controller
         $user_id = $request->getAttribute('user_id');
 
         $rules = [
-            'file'   => 'required',
+            'file'   => 'required|uploaded_file:0,5M',
             'folder' => 'nullable',
         ];
         $messages = [
@@ -33,8 +33,6 @@ class UploadController extends Controller
         $validData = $validator->validData;
 
         $uploadedFiles = $request->getUploadedFiles();
-
-        $s3 = new \App\Helpers\S3;
 
         $username = $this->db->get('users', 'username', ['id' => $user_id]);
 
@@ -57,22 +55,37 @@ class UploadController extends Controller
 
         }
 
-        $args = [
-            'Key'         => $key,                                // Folder + filename in S3
-            'Body'        => $uploadedFile->getStream(),          // Convert PHP array to JSON
-            'ContentType' => $uploadedFile->getClientMediaType(), // Tell S3 it's JSON
-        ];
+        // Final file path
+        $filePath = ABSPATH . '/public/uploads/' . $key;
 
-        $result = $s3->put($args);
+// Ensure directory exists
+        $directory = dirname($filePath);
 
-        if (empty($result)) {
-
-            return $this->json(['error' => 'Unable to upload file.'], 409);
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
         }
 
-        $this->db->insert('uploads', ['user_id' => $user_id, 'key' => $key]);
+// Move uploaded file
+        $uploadedFile->moveTo($filePath);
 
-        return $this->json(['key' => $key]);
+        $clientMimeType = $uploadedFile->getClientMediaType();
+
+        $finfo        = finfo_open(FILEINFO_MIME_TYPE);
+        $realMimeType = finfo_file($finfo, $filePath);
+        finfo_close($finfo);
+
+        $args = [
+            'filename' => $filename,
+            'user_id' => $user_id,
+            'key'     => $key,
+            'mime'    => $realMimeType,
+            'size'    => $uploadedFile->getSize(),
+        ];
+        $this->db->insert('uploads', $args);
+
+        $url = $_ENV['APP_URL'] . '/uploads/' . $key;
+
+        return $this->json(['url' => $url, 'key' => $key, 'mime' => $realMimeType]);
     }
 
     public function get(Request $request, Response $response, array $args): Response
@@ -100,7 +113,7 @@ class UploadController extends Controller
 
         $s3 = new \App\Helpers\S3;
 
-        if(!$s3->doesObjectExist($validData->key)){
+        if (! $s3->doesObjectExist($validData->key)) {
 
             return $this->json(['error' => 'Invalid file to get'], 422);
         }
@@ -142,16 +155,16 @@ class UploadController extends Controller
 
         $user_id = $request->getAttribute('user_id');
 
-        $count = $this->db->count('uploads', ['key' => $validData->key, 'user_id'=>$user_id]);
+        $count = $this->db->count('uploads', ['key' => $validData->key, 'user_id' => $user_id]);
 
-        if(!$count){
+        if (! $count) {
 
             return $this->json(['error' => 'Invalid authorization to delete'], 422);
         }
 
         $s3 = new \App\Helpers\S3;
 
-        if(!$s3->doesObjectExist($validData->key)){
+        if (! $s3->doesObjectExist($validData->key)) {
 
             return $this->json(['error' => 'Invalid file to delete'], 422);
         }
@@ -167,7 +180,7 @@ class UploadController extends Controller
             return $this->json(['error' => 'Unable to remove file']);
         }
 
-        $this->db->update('uploads', ['user_id'=>-1], ['key' => $validData->key]);
+        $this->db->update('uploads', ['user_id' => -1], ['key' => $validData->key]);
 
         return $this->json(['message' => 'Removed file successfully']);
 

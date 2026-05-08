@@ -80,7 +80,7 @@ class DB
             if ($loop > 99) {
 
                 $loop = 1;
-                $char = 5;
+                $char = $char+1;
             }
 
         } while ($count);

@@ -20,6 +20,12 @@ class ForgotPasswordController extends Controller
 
     public function index(Request $request, Response $response, array $args): Response
     {
+
+        return $this->view($request, 'guest/forgot-password');
+    }
+
+    public function verify(Request $request, Response $response, array $args): Response
+    {
         $validator = new \App\Helpers\Validator();
         $data      = $request->getParsedBody();
         $rules     = [
@@ -39,11 +45,12 @@ class ForgotPasswordController extends Controller
 
         $where = [
             'OR' => [
-                'email'  => $validData->username,
-                'mobile' => $validData->username,
+                'username' => $validData->username,
+                'email'    => $validData->username,
+                'mobile'   => $validData->username,
             ],
         ];
-        $user = (object) $this->db->get('users', ['id', 'otp_created_at'], $where);
+        $user = (object) $this->db->get('users', ['id', 'otp_created_at', 'username'], $where);
 
         if (empty($user) || empty($user->id)) {
 
@@ -96,8 +103,11 @@ class ForgotPasswordController extends Controller
                 return $this->json(['error' => 'Error sending sms in OTP. Contact administrator'], 422);
             }
 
-            return $this->json($res);
+            $res['redirect'] = $_ENV['APP_URL'] . '/guest/set-password?username=' . $user->username;
+
         }
+
+        $res['redirect'] = $_ENV['APP_URL'] . '/guest/set-password?username=' . $user->username . '&otp=' . $otp;
 
         $res['otp'] = $otp;
 

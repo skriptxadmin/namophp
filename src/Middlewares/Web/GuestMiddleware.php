@@ -15,7 +15,7 @@ class GuestMiddleware implements MiddlewareInterface
         // Optional: Handle the incoming request
         // ...
 
-        if(!empty($_SESSION['userId'])){
+        if(!empty($_SESSION['user_username'])){
             $routeParser = RouteContext::fromRequest($request)->getRouteParser();
             $url = $routeParser->urlFor('web.dashboard');
             $response = $handler->handle($request);

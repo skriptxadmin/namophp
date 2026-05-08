@@ -18,6 +18,7 @@ class UserMiddleware implements MiddlewareInterface
     public function process(Request $request, RequestHandler $handler): Response
     {
 
+    
         // Invoke the next middleware and get response
         $jwt = new \App\Helpers\JWT;
 

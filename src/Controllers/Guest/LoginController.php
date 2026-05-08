@@ -16,7 +16,14 @@ class LoginController extends Controller
      * @return Response
      */
 
-    public function index(Request $request, Response $response, array $args): Response
+     public function index(Request $request, Response $response, array $args): Response
+    {
+       
+
+        return $this->view($request, 'guest/login');
+    }
+
+    public function verify(Request $request, Response $response, array $args): Response
     {
         $validator = new \App\Helpers\Validator();
         $data      = $request->getParsedBody();
@@ -36,6 +43,7 @@ class LoginController extends Controller
 
         $where = [
             'OR' => [
+                'username' => $validData->username,
                 'email'  => $validData->username,
                 'mobile' => $validData->username,
             ],
@@ -58,9 +66,12 @@ class LoginController extends Controller
 
         }
 
-        $_SESSION['user_id'] = $user->id;
+        $_SESSION['user_username'] = $user->username;
 
+        $role = $this->db->get('roles', 'slug', ['id' => $user->role_id]);
 
+        $_SESSION['user_role'] = $role;
+        
         $redirect = $_ENV['APP_URL'] . '/dashboard';
 
         if(!empty($validData->redirectUrl)){

@@ -6,7 +6,7 @@
         "monolog/monolog": "^3.9",
         "catfan/medoo": "^2.2",
         "rakit/validation": "^1.4",
-        "firebase/php-jwt": "^6.11",
+        "firebase/php-jwt": "^7.0.5",
         "nesbot/carbon": "^3.11",
         "aws/aws-sdk-php": "^3.321",
         "smarty/smarty": "^5.4",
@@ -20,3 +20,5 @@
         }
     }
 }
+
+

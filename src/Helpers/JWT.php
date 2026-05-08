@@ -11,7 +11,8 @@ class JWT
 
     public function __construct()
     {
-        $this->key = getenv('JWT_SECRET') ?: 'default_secret_key';
+        $this->key = $_ENV['JWT_SECRET'] ?: 'random_long_key_for_jwt_secret_hashing';
+
     }
 
     public function encode(array $data): string
@@ -67,14 +68,14 @@ class JWT
             return $decoded;
         }
 
-        if (empty($decoded->data->email)) {
+        if (empty($decoded->data->username)) {
 
             return "Unidentified user";
         }
 
         $dbconn = new \App\Helpers\DB;
 
-        $row = $dbconn->db->get('users', 'id', ['email' => $decoded->data->email]);
+        $row = $dbconn->db->get('users', 'id', ['username' => $decoded->data->username]);
         
         
         return $row?intval($row):'Invalid User';

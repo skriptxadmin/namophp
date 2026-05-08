@@ -1,0 +1,24 @@
+<section class="home-content">
+    <h3>Welcome to our Support Center</h3>
+  <p>
+    Our ticketing system makes it easy for you to raise and track your requests without any confusion. Whether you need support, have a query, or want to report an issue, everything can be submitted in just a few clicks. No more waiting on calls or losing track of conversations — everything stays organized in one place.
+  </p>
+
+  <p>
+    You can monitor the progress of your requests in real time, receive timely updates, and communicate directly through the ticket itself. This ensures transparency and keeps you informed at every stage, so you always know what’s happening and when to expect a resolution.
+  </p>
+
+  <p>
+    Designed for simplicity and convenience, our system helps you save time and get faster responses. With a clean interface and easy access from anywhere, managing your requests has never been more smooth and efficient.
+  </p>
+</section>
+{if !$isUserLoggedIn}
+<div class="d-flex justify-content-center align-items-center">
+  <a class="btn btn-lg btn-primary" href="{$url}/guest/login">Login to continue</a>
+</div>
+{/if}
+{if $isUserLoggedIn}
+<div class="d-flex justify-content-center align-items-center">
+  <a class="btn btn-lg btn-primary" href="{$url}/dashboard">Dashboard</a>
+</div>
+{/if}

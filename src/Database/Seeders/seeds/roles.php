@@ -1,10 +1,16 @@
-<?php 
+<?php
 
 return [
     [
-        "name" => "Administrator"
+        "slug" => "administrator",
+        "name" => "Administrator",
     ],
     [
-        "name" => "Subscriber"
-    ]
+        "slug" => "agent",
+        "name" => "Agent",
+    ],
+    [
+        "slug" => "client",
+        "name" => "Client",
+    ],
 ];

@@ -1,6 +1,7 @@
 <?php
 namespace App\Middlewares\Web;
 
+use function _\get;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
@@ -20,7 +21,9 @@ class UserMiddleware implements MiddlewareInterface
         // Optional: Handle the incoming request
         // ...
 
-        if (empty($_SESSION['userId'])) {
+        $username = get($_SESSION, 'user_username', null);
+
+        if (empty($username)) {
             $routeParser = RouteContext::fromRequest($request)->getRouteParser();
             $url         = $routeParser->urlFor('web.login');
             $response    = $handler->handle($request);
@@ -32,21 +35,23 @@ class UserMiddleware implements MiddlewareInterface
 
         $dbconn = new \App\Helpers\DB;
 
-        $uid = $_SESSION['userId'];
+        $join = [
+            '[>]roles(r)' => ['u.role_id' => 'id'],
+        ];
+
+        $select = [
+            'r.name(role)',
+            'u.id',
+            'u.username',
+            'u.blocked_at',
+        ];
+        $user = $dbconn->db->get('users(u)', $join, $select, ['username' => $username]);
 
         if (! empty($this->args)) {
 
-            $where = ['u.id' => $uid];
+            $role = $user['role'];
 
-            $join = [
-                '[>]roles(r)' => ['role_id' => 'id'],
-            ];
-
-            $select = 'r.name';
-
-            $role = $dbconn->db->get('users(u)', $join, $select, $where);
-
-            if (empty($role) || !in_array($role, $this->args)) {
+            if (empty($role) || ! in_array($role, $this->args)) {
 
                 $routeParser = RouteContext::fromRequest($request)->getRouteParser();
                 $url         = $routeParser->urlFor('web.404');
@@ -59,24 +64,19 @@ class UserMiddleware implements MiddlewareInterface
 
         }
 
+        if ($user['blocked_at']) {
 
-            $count = $dbconn->db->count('users', ['blocked_at[!]'=> NULL,'id'=>$uid]);
+            $routeParser = RouteContext::fromRequest($request)->getRouteParser();
+            $url         = $routeParser->urlFor('web.404');
+            $response    = $handler->handle($request);
+            $uri         = $request->getUri();
+            return $response
+                ->withHeader('Location', $url)
+                ->withStatus(302);
 
-            if($count){
+        }
 
-                $routeParser = RouteContext::fromRequest($request)->getRouteParser();
-                $url         = $routeParser->urlFor('web.404');
-                $response    = $handler->handle($request);
-                $uri         = $request->getUri();
-                return $response
-                    ->withHeader('Location', $url)
-                    ->withStatus(302);
-
-            }
-
-
-
-        $request = $request->withAttribute('uid', $uid);
+        $request = $request->withAttribute('user_id', $user['id']);
 
         // Invoke the next middleware and get response
         $response = $handler->handle($request);

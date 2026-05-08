@@ -3,3 +3,5 @@ vendor
 logger
 smarty
 json_cache
+public/node_modules
+public/uploads

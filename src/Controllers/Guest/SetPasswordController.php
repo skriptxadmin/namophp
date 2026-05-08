@@ -17,7 +17,21 @@ class SetPasswordController extends Controller
      * @return Response
      */
 
-    public function index(Request $request, Response $response, array $args): Response
+    
+     public function index(Request $request, Response $response, array $args): Response
+    {
+       $queryParams = $request->getQueryParams();
+
+       if(empty($queryParams['username'])){
+
+            return $this->redirect($request, 'web.404');
+       }
+
+        return $this->view($request, 'guest/set-password', compact('queryParams'));
+    }
+
+
+    public function verify(Request $request, Response $response, array $args): Response
     {
         $validator = new \App\Helpers\Validator();
         $data      = $request->getParsedBody();
@@ -36,10 +50,7 @@ class SetPasswordController extends Controller
         $validData = $validator->validData;
 
         $where = [
-            'OR' => [
-                'email'  => $validData->username,
-                'mobile' => $validData->username,
-            ],
+            'username' => $validData->username,
             'otp' => $validData->otp,
             'otp_created_at[!]' => NULL
         ];
@@ -73,6 +84,7 @@ class SetPasswordController extends Controller
 
         return $this->json([
             'message' => 'Password updated successful',
+            'redirect' => $_ENV['APP_URL'].'/guest/login'
         ]);
 
     }

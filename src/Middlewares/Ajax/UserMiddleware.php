@@ -1,92 +1,109 @@
 <?php
+
 namespace App\Middlewares\Ajax;
 
+use App\Helpers\DB;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
+use Slim\Psr7\Response as SlimResponse;
+
+use function _\get;
 
 class UserMiddleware implements MiddlewareInterface
 {
-    private $args;
+    private ?array $allowedRoles;
 
-    public function __construct($args = null)
+    public function __construct(?array $allowedRoles = null)
     {
-        $this->args = $args;
+        $this->allowedRoles = $allowedRoles;
     }
 
     public function process(Request $request, RequestHandler $handler): Response
     {
-        // Optional: Handle the incoming request
-        // ...
+        $username = get($_SESSION, 'user_username');
 
-        if (empty($_SESSION['user_id'])) {
-            $payload = json_encode(['error' => 'You are not authorized to perform this action']);
-
-            $response = new \Slim\Psr7\Response();
-
-            $response->getBody()->write($payload);
-
-            return $response
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(422);
+        if (empty($username)) {
+            return $this->jsonResponse([
+                'error' => 'You are not authorized to perform this action',
+                'user'  => false,
+            ]);
         }
 
-        $uid = $_SESSION['user_id'];
+        $user = $this->getUser($username);
 
-        $dbconn = new \App\Helpers\DB;
-
-        if (! empty($this->args)) {
-
-            $where = ['u.id' => $uid];
-
-            $join = [
-                '[>]roles(r)' => ['role_id' => 'id'],
-            ];
-
-            $select = 'r.name';
-
-            $role = $dbconn->db->get('users(u)', $join, $select, $where);
-
-            if (empty($role) || ! in_array($role, $this->args)) {
-
-                $payload = json_encode(['error' => 'You are not authorized to perform this action']);
-
-                $response = new \Slim\Psr7\Response();
-
-                $response->getBody()->write($payload);
-
-                return $response
-                    ->withHeader('Content-Type', 'application/json')
-                    ->withStatus(422);
-            }
-
+        if (empty($user)) {
+            return $this->jsonResponse([
+                'error' => 'User not found',
+            ]);
         }
 
-        $count = $dbconn->db->count('users', ['blocked_at[!]' => null, 'id' => $uid]);
-
-        if ($count) {
-
-            $payload = json_encode(['error' => 'You are not authorized to perform this action']);
-
-            $response = new \Slim\Psr7\Response();
-
-            $response->getBody()->write($payload);
-
-            return $response
-                ->withHeader('Content-Type', 'application/json')
-                ->withStatus(422);
-
+        if ($this->isBlocked($user)) {
+            return $this->jsonResponse([
+                'error'   => 'You are not authorized to perform this action',
+                'blocked' => true,
+            ]);
         }
 
-        $request = $request->withAttribute('uid', $uid);
+        if (! $this->hasValidRole($user)) {
+            return $this->jsonResponse([
+                'error' => 'You are not authorized to perform this action',
+                'role'  => false,
+            ]);
+        }
 
-        // Invoke the next middleware and get response
-        $response = $handler->handle($request);
+        $request = $request->withAttribute('user_id', $user['id']);
+        $request = $request->withAttribute('user', $user);
 
-        // Optional: Handle the outgoing response
-        // ...
+        return $handler->handle($request);
+    }
 
-        return $response;
+    private function getUser(string $username): ?array
+    {
+        $db = new DB();
+
+        return $db->db->get(
+            'users(u)',
+            [
+                '[>]roles(r)' => ['u.role_id' => 'id'],
+            ],
+            [
+                'u.id',
+                'u.username',
+                'u.blocked_at',
+                'r.name(role)',
+            ],
+            [
+                'username' => $username,
+            ]
+        );
+    }
+
+    private function isBlocked(array $user): bool
+    {
+        return ! empty($user['blocked_at']);
+    }
+
+    private function hasValidRole(array $user): bool
+    {
+        if (empty($this->allowedRoles)) {
+            return true;
+        }
+
+        return in_array($user['role'] ?? null, $this->allowedRoles, true);
+    }
+
+    private function jsonResponse(array $data, int $status = 422): Response
+    {
+        $response = new SlimResponse();
+
+        $response->getBody()->write(
+            json_encode($data)
+        );
+
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus($status);
     }
 }

@@ -20,12 +20,19 @@ class RegisterController extends Controller
 
     public function index(Request $request, Response $response, array $args): Response
     {
+
+        return $this->view($request, 'guest/register');
+    }
+
+    public function verify(Request $request, Response $response, array $args): Response
+    {
         $validator = new \App\Helpers\Validator();
         $data      = $request->getParsedBody();
         $rules     = [
             'email'    => 'required|email|unique:users,email',
-            'mobile'   => 'required|regex:/^[6-9][0-9]{9}$/|unique:users,mobile',
+            'mobile'   => 'required|regex:/^[0-9]*$/|unique:users,mobile',
             'fullname' => 'required|min:3|max:30',
+            'username' => 'required|min:3|max:30|unique:users,username',
         ];
         $messages = [
 
@@ -39,15 +46,16 @@ class RegisterController extends Controller
         $random = new \App\Helpers\Random;
         $otp    = $random->otp();
 
-        $dbhelper = new \App\Helpers\DB;
+        $role_id =  $this->db->get('roles', 'id', ['name' => 'Client']);
 
+        $username = $validData->username;
         $args = [
-            'slug'           => $dbhelper->create_slug('users', $validData->fullname),
+            'username'       => $username,
             'password'       => password_hash($random->string(), PASSWORD_DEFAULT),
             'fullname'       => $validData->fullname,
             'email'          => $validData->email,
             'mobile'         => $validData->mobile,
-            'role_id'        => ! empty($_ENV['APP_DEFAULT_ROLE']) ? $_ENV['APP_DEFAULT_ROLE'] : -1,
+            'role_id'        => $role_id,
             'otp'            => $otp,
             'otp_created_at' => Carbon::now()->toDateTimeString(),
         ];
@@ -77,11 +85,15 @@ class RegisterController extends Controller
                 return $this->json(['error' => 'Error sending sms in OTP. Contact administrator'], 422);
             }
 
+            $res['redirect'] = $_ENV['APP_URL'].'/guest/set-password?username='.$username;
+
             return $this->json($res);
         }
 
-        $res['otp'] = $otp;
+        $res['redirect'] = $_ENV['APP_URL'].'/guest/set-password?username='.$username.'&otp='.$otp;
 
+        $res['otp'] = $otp;
+        
         return $this->json($res);
 
     }

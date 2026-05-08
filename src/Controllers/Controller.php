@@ -137,7 +137,9 @@ class Controller
         $hash = $csrf->string($csrfContext);
         $smarty->assign('csrfToken', $hash);
 
-        $smarty->assign('isUserLoggedIn', ! empty($_SESSION['userId']) ? 1 : 0);
+        $smarty->assign('isUserLoggedIn', ! empty($_SESSION['user_username']) ? 1 : 0);
+        $smarty->assign('userRole', $this->getUserRole());
+
         $ENV = get($_ENV, 'APP_ENV', 'production');
         $smarty->assign('isProduction', $ENV == 'production' ? 1 : 0);
         $smarty->assign('url', $_ENV['APP_URL']);
@@ -214,11 +216,17 @@ class Controller
         $version = isset($_ENV['APP_VERSION']) ? $_ENV['APP_VERSION'] : '1.0.0';
 
         // Optional: base URL
-        $baseUrl = isset($_ENV['url']) ? rtrim($_ENV['url'], '/') : '';
+        $baseUrl = isset($_ENV['APP_URL']) ? rtrim($_ENV['APP_URL'], '/') : '';
 
         $src = ($baseUrl ? $baseUrl . '/' : '') . $file . '?v=' . $version;
 
         return '<link href="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" rel="stylesheet" />';
+    }
+
+    public function getUserRole()
+    {
+        // Example from session
+        return $_SESSION['user_role'] ?? 'guest';
     }
 
 }

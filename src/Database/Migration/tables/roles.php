@@ -7,6 +7,10 @@
                 "AUTO_INCREMENT",
                 "PRIMARY KEY",
             ],
+              'slug' => [
+                "VARCHAR(40)",
+                "NOT NULL",
+            ],
             'name' => [
                 "VARCHAR(40)",
                 "NOT NULL",

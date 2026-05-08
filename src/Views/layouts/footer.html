@@ -1,30 +1,60 @@
+<div id="appToast" class="toast-container position-fixed top-0 end-0 p-3">
+  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-body"></div>
+  </div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="confirmModalLabel"></h1>
+        <button type="button" class="btn-close btn-respond" data-result="false" data-bs-dismiss="modal"
+          aria-label="Close"></button>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-respond" data-result="false" data-bs-dismiss="modal">
+          No
+        </button>
+        <button type="button" class="btn btn-primary btn-respond" data-result="true">
+          Yes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="screen-blocker">
+  <div class="spinner"></div>
+</div>
 
 <footer>
-  <!-- Copyright -->
-  <div class="mt4 tc f6 white-70">
-    © {$smarty.now|date_format:"%Y"} {env var='APP_TITLE'}. All rights reserved.
-  </div>
+  <nav class="navbar bg-body-tertiary">
+    <div class="container">
+      <span class="navbar-text">
+        © {$smarty.now|date_format:"%Y"} {env var='APP_TITLE'}. All rights
+        reserved.
+      </span>
+    </div>
+  </nav>
 </footer>
-
 
 {nocache}
 
 <script>
-    window.appLocals = {
-        url: '{$url}',
-        ajax: '{$url}/ajax/',
-        isUserLoggedIn: {$isUserLoggedIn},
-        production:{$isProduction},
-        recaptchaSiteKey:"{env var='GOOGLE_CAPTCHA_SITE_KEY'}"
-       
-    };
-    
-
+  window.appLocals = {
+    url: "{$url}",
+    ajax: "{$url}/ajax/",
+    isUserLoggedIn: {$isUserLoggedIn},
+    production: {$isProduction},
+    recaptchaSiteKey: "{env var='GOOGLE_CAPTCHA_SITE_KEY'}",
+  };
 </script>
 
-    {/nocache}
-
-
-{js file="scripts/app.js"}
-
-{block name="scripts"}{/block}
+{/nocache} {js file="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"}
+{js file="node_modules/jquery/dist/jquery.min.js"} {js
+file="node_modules/lodash/lodash.min.js"} {js
+file="node_modules/jquery-validation/dist/jquery.validate.min.js"} {js
+file="node_modules/jquery-validation/dist/additional-methods.min.js"} {js
+file="scripts/app.js"} {block name="scripts"}{/block}
