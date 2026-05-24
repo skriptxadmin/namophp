@@ -94,17 +94,18 @@ class ForgotPasswordController extends Controller
 
         if ($ENV === 'production') {
 
-            $sms = new \App\Helpers\FastSms;
+            $args = [
+                'from'                  => 'Codewith Skriptx <postmaster@codewith.skriptx.com>',
+                'to'                    => $user->email,
+                'template'              => 'one time password',
+                'h:X-Mailgun-Variables' => '{"otp": ' . $otp . ',"name":"' . $user->fullname . '"}',
+            ];
 
-            $sent = $sms->send($uid);
+            $mail = new \App\Helpers\Mailgun;
 
-            if (! $sent) {
+            $mail->send($args);
 
-                return $this->json(['error' => 'Error sending sms in OTP. Contact administrator'], 422);
-            }
-
-            $res['redirect'] = $_ENV['APP_URL'] . '/guest/set-password?username=' . $user->username;
-
+            return $this->json($res);
         }
 
         $res['redirect'] = $_ENV['APP_URL'] . '/guest/set-password?username=' . $user->username . '&otp=' . $otp;

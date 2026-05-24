@@ -74,20 +74,21 @@ class RegisterController extends Controller
 
         if ($ENV === 'production') {
 
-            $sms = new \App\Helpers\FastSms;
+           $args = [
+                'from'                  => 'Codewith Skriptx <postmaster@codewith.skriptx.com>',
+                'to'                    => $validData->email,
+                'template'              => 'one time password',
+                'h:X-Mailgun-Variables' => '{"otp": ' . $otp . ',"name":"' . $validData->fullname . '"}',
+            ];
 
-            $uid = $this->db->id();
+            $mail = new \App\Helpers\Mailgun;
 
-            $sent = $sms->send($uid);
-
-            if (! $sent) {
-
-                return $this->json(['error' => 'Error sending sms in OTP. Contact administrator'], 422);
-            }
+            $mail->send($args);
 
             $res['redirect'] = $_ENV['APP_URL'].'/guest/set-password?username='.$username;
 
             return $this->json($res);
+            
         }
 
         $res['redirect'] = $_ENV['APP_URL'].'/guest/set-password?username='.$username.'&otp='.$otp;
