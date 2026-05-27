@@ -95,9 +95,9 @@ class ForgotPasswordController extends Controller
         if ($ENV === 'production') {
 
             $args = [
-                'from'                  => 'Codewith Skriptx <postmaster@codewith.skriptx.com>',
+                'from'                  => 'Skriptx <postmaster@skriptx.com>',
                 'to'                    => $user->email,
-                'template'              => 'one time password',
+                'template'              => 'otp for skriptx',
                 'h:X-Mailgun-Variables' => '{"otp": ' . $otp . ',"name":"' . $user->fullname . '"}',
             ];
 
