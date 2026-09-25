@@ -17,12 +17,12 @@ class JWT
 
     public function encode(array $data): string
     {
-        $issuedAt       = time();
+        $issuedAt = time();
         $expirationTime = $issuedAt + (int) $_ENV['JWT_EXPIRATION']; // JWT expiration time in seconds
 
         $payload = [
-            'iat'  => $issuedAt,
-            'exp'  => $expirationTime,
+            'iat' => $issuedAt,
+            'exp' => $expirationTime,
             'data' => $data,
         ];
 
@@ -76,32 +76,26 @@ class JWT
         $dbconn = new \App\Helpers\DB;
 
         $row = $dbconn->db->get('users', 'id', ['username' => $decoded->data->username]);
-        
-        
-        return $row?intval($row):'Invalid User';
-        
+
+
+        return $row ? intval($row) : 'Invalid User';
+
 
     }
 
-     public function set_refresh_token($uid)
+    public function refresh_token($data)
     {
 
-        $dbconn = new \App\Helpers\DB;
+        $issuedAt = time();
+        $expirationTime = $issuedAt + (int) $_ENV['JWT_REFRESH_EXPIRATION']; // JWT expiration time in seconds
 
-        do {
+        $payload = [
+            'iat' => $issuedAt,
+            'exp' => $expirationTime,
+            'data' => $data,
+        ];
 
-            $token = bin2hex(random_bytes(32));
+        return FirebaseJWT::encode($payload, $this->key, 'HS256');
 
-            $count = $dbconn->db->count('users', ['refresh_token' => $token]);
-
-        } while ($count);
-
-        $now = Carbon::now()->toDateTimeString();
-
-        $args = ['refresh_token' => $token, 'refresh_token_updated_at' => $now];
-
-        $dbconn->db->update('users', $args, ['id' => $uid]);
-
-        return $token;
     }
 }
