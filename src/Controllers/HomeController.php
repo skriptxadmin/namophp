@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Controllers\Controller;
+use Carbon\Carbon;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -19,8 +20,8 @@ class HomeController extends Controller
     public function index(Request $request, Response $response, array $args): Response
     {
 
-        
-        return $this->view($request, 'home/index');
+        return $this->html($request, 'home/index');
     }
+
 
 }

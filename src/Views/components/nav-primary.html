@@ -1,32 +1,36 @@
-<header>
-  <nav class="navbar nav-primary fixed-top navbar-expand-lg bg-body-tertiary">
-    <div class="container">
-      <a class="navbar-brand" href="{$url}">{env var="APP_TITLE"}</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+<nav class="navbar navbar-expand-md bg-body shadow">
+  <div class="container">
+
+    <!-- Logo -->
+   <a class="navbar-brand" href="{$url}">
+      {env var="APP_TITLE"}
+    </a> 
+     
+    <!-- Mobile menu button -->
+    <button class="navbar-toggler border-0" data-bs-toggle="collapse" data-bs-target="#nav" aria-label="Menu">
+      {svg file="menu-2"}
+    </button>
+
+    <!-- Navigation -->
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto align-items-md-center gap-md-2">
+        {if !$isUserLoggedIn}
+        <li class="nav-item">
+          <a class="nav-link" href="/guest/login">Log in</a>
+        </li>
+        {/if}
+       
           {if $isUserLoggedIn}
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{$url}/dashboard">Dashboard</a>
-          </li>
-         
-          <li class="nav-item">
-            <a class="nav-link active logout" aria-current="page" href="javascript:void(0)">Logout</a>
-          </li>
-          {/if}
-          {if !$isUserLoggedIn}
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{$url}/guest/login">Login</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{$url}/guest/register">Register</a>
-          </li>
-          {/if}
-        </ul>
-      </div>
+            <li class="nav-item">
+          <a class="nav-link" href="{$url}/dashboard">Dashboard</a>
+        </li>
+           
+        <li class="nav-item">
+          <a class="nav-link logout" href="javascript:void(0)">Log out</a>
+        </li>
+        {/if}
+      </ul>
     </div>
-  </nav>
-</header>
+
+  </div>
+</nav>

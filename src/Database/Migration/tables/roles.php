@@ -10,6 +10,7 @@
               'slug' => [
                 "VARCHAR(40)",
                 "NOT NULL",
+        "UNIQUE"
             ],
             'name' => [
                 "VARCHAR(40)",

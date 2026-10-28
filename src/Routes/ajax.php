@@ -6,11 +6,19 @@ use App\Middlewares\Ajax\GuestMiddleware;
 use App\Middlewares\Ajax\UserMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 
+
+$app->group('/ajax', function (RouteCollectorProxy $group) {
+ 
+$group->post('/upload/get', [App\Controllers\UploadControllerS3::class, 'get'])->setName('upload.get');
+
+})->add(new CsrfMiddleware)->add(new GoogleRecaptchaMiddleware);
+
+
 $app->group('/ajax/guest', function (RouteCollectorProxy $group) {
 
-    $group->post('/login', [App\Controllers\Guest\LoginController::class, 'verify'])->setName('ajax.login');
+    $group->post('/login', [App\Controllers\Guest\LoginWebController::class, 'verify'])->setName('ajax.login');
     $group->post('/register', [App\Controllers\Guest\RegisterController::class, 'verify'])->setName('ajax.register');
-    $group->post('/set-password', [App\Controllers\Guest\SetPasswordController::class, 'verify'])->setName('ajax.set-password');
+    $group->post('/set-password', [App\Controllers\Guest\SetPasswordWebController::class, 'verify'])->setName('ajax.set-password');
     $group->post('/forgot-password', [App\Controllers\Guest\ForgotPasswordController::class, 'verify'])->setName('ajax.forgot-password');
 
 })->add(new CsrfMiddleware)->add(new GoogleRecaptchaMiddleware)->add(new GuestMiddleware);
@@ -25,7 +33,10 @@ $app->group('/ajax/user', function (RouteCollectorProxy $group) {
 
 $app->group('/ajax/upload', function (RouteCollectorProxy $group) {
 
-    $group->post('', [App\Controllers\UploadController::class, 'index'])->setName('upload');
-    $group->post('/remove', [App\Controllers\UploadController::class, 'remove'])->setName('upload.remove');
+    $group->post('', [App\Controllers\UploadControllerS3::class, 'index'])
+        ->setName('upload.save')->add(new UserMiddleware);
+    $group->post('/remove', [App\Controllers\UploadControllerS3::class, 'remove'])
+        ->setName('upload.remove')->add(new UserMiddleware);
 
 })->add(new CsrfMiddleware)->add(new UserMiddleware);
+

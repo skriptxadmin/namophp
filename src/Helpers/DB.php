@@ -2,7 +2,9 @@
 namespace App\Helpers;
 
 use function _\kebabCase;
-use Medoo\Medoo as MedooDB; // for columns to work
+use Medoo\Medoo as MedooDB;
+
+// for columns to work
 
 class DB
 {
@@ -12,11 +14,11 @@ class DB
     public function __construct()
     {
 
-        if(empty($_ENV['DB_DATABASE'])){
+        if (empty($_ENV['DB_DATABASE'])) {
 
             return;
         }
-        
+
         $this->db = new MedooDB([
             // [required]
             'type'     => 'mysql',
@@ -59,11 +61,14 @@ class DB
         $this->db->pdo->exec("SET time_zone = '$timezone'");
     }
 
-  
-
-
     public function create_slug($table, $title)
     {
+        $slug  = kebabCase($title);
+        $count = $this->db->count($table, ['slug' => $slug]);
+        if (! $count) {
+            return $slug;
+        }
+
         $random = new \App\Helpers\Random;
         $slug   = null;
         $loop   = 1;
@@ -80,12 +85,21 @@ class DB
             if ($loop > 99) {
 
                 $loop = 1;
-                $char = $char+1;
+                $char = $char + 1;
             }
 
         } while ($count);
 
         return $slug;
+    }
+
+    public function get_columns($table)
+    {
+        $listingColumns = array_map(
+            fn($column) => "t1.$column",
+            array_keys($this->db->query("SHOW COLUMNS FROM $table")->fetchAll(\PDO::FETCH_UNIQUE))
+        );
+        return $listingColumns;
     }
 
 }

@@ -27,6 +27,18 @@ return [
         "INT(10)",
         "NULL",
     ],
+    's3url' => [
+        "TEXT",
+        "NULL"
+    ],
+    's3url_created_at' => [
+        "DATETIME",
+        "NULL"
+    ],
+     'created_by'    => [
+        "INT(10)",
+        "NOT NULL",
+    ],
     'created_at' => [
         "TIMESTAMP",
         "DEFAULT CURRENT_TIMESTAMP",

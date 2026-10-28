@@ -5,13 +5,13 @@ use App\Helpers\CSRF;
 use function _\get;
 use Slim\Routing\RouteContext;
 use Smarty\Smarty;
+use App\Helpers\DB;
 
-class Controller
+class Controller extends DB
 {
 
-    public $db;
 
-    public $json_cache_path = ABSPATH . '/./json_cache';
+    public $cache_path = ABSPATH . '/./cached';
 
     public $cache_time;
 
@@ -19,35 +19,104 @@ class Controller
 
     public function __construct()
     {
-        $dbconn           = new \App\Helpers\DB;
-        $this->db         = $dbconn->db;
+        parent::__construct();
+        
         $this->cache_time = $_ENV['CACHE_TIME'];
 
     }
 
-    public function set_cached_json($file, $data)
+    public function cache_key(string $prefix, array $params = []): string
     {
-        $cacheFile = $this->json_cache_path . '/' . $file . '.json';
+        ksort($params);
 
-        file_put_contents($cacheFile, json_encode($data));
+        return $prefix . '-' . md5(json_encode($params));
     }
 
-    public function get_cached_json($file)
+/**
+ * Cache any file.
+ *
+ * For .json files, $data is encoded as JSON.
+ * For other files, $data is written as-is.
+ */
+    public function set_cached_file($file, $data)
     {
-        $data      = null;
-        $cacheFile = $this->json_cache_path . '/' . $file . '.json';
-        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $this->cache_time) {
-            $json = file_get_contents($cacheFile);
-            $data = json_decode($json, true);
+        $ENV = get($_ENV, 'APP_ENV', 'production');
+
+        if ($ENV !== 'production') {
+            return;
         }
+
+        $cacheDir = $this->cache_path;
+
+        if (! is_dir($cacheDir) && ! mkdir($cacheDir, 0755, true) && ! is_dir($cacheDir)) {
+            return false;
+        }
+
+        $file      = ltrim(trim($file), '/\\');
+        $cacheFile = $cacheDir . DIRECTORY_SEPARATOR . $file;
+
+        // Create nested directories if required.
+        $directory = dirname($cacheFile);
+
+        if (! is_dir($directory) && ! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+            return false;
+        }
+
+        // Encode only JSON files.
+        if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'json') {
+            $data = json_encode($data);
+
+            if ($data === false) {
+                return false;
+            }
+        }
+
+        return file_put_contents($cacheFile, $data, LOCK_EX) !== false;
+    }
+
+/**
+ * Retrieve any cached file.
+ *
+ * For .json files, return decoded data.
+ * For other files, return raw contents.
+ *
+ * $time is the cache lifetime in seconds.
+ */
+    public function get_cached_file($file, $time = null)
+    {
+        $file      = ltrim(trim($file), '/\\');
+        $cacheFile = $this->cache_path . DIRECTORY_SEPARATOR . $file;
+
+        $cacheTime = ($time !== null && $time !== '')
+            ? (int) $time
+            : $this->cache_time;
+
+        if (
+            ! is_file($cacheFile) ||
+            (time() - filemtime($cacheFile)) >= $cacheTime
+        ) {
+            return null;
+        }
+
+        $data = file_get_contents($cacheFile);
+
+        if ($data === false) {
+            return null;
+        }
+
+        if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'json') {
+            return json_decode($data, true);
+        }
+
         return $data;
     }
-
-    public function redirect($request, $urlname)
+    public function redirect($request, $urlname, array $data = [])
     {
         $routeParser = RouteContext::fromRequest($request)->getRouteParser();
-        $url         = $routeParser->urlFor($urlname);
-        $response    = new \Slim\Psr7\Response();
+        $url         = $routeParser->urlFor($urlname, $data);
+
+        $response = new \Slim\Psr7\Response();
+
         return $response
             ->withHeader('Location', $url)
             ->withStatus(302);
@@ -68,7 +137,29 @@ class Controller
 
     }
 
-    public function view($request, $tpl, $data = null, $page_cache = null)
+    public function xml($request, $tpl, $data = [])
+    {
+        $smarty = new Smarty();
+
+               $smarty->setTemplateDir(ABSPATH . '/src/Views/');
+
+
+        foreach ($data as $key => $value) {
+            $smarty->assign($key, $value);
+        }
+
+        $xml = $smarty->fetch($tpl . '.xml');
+
+        $response = new \Slim\Psr7\Response();
+
+        $response->getBody()->write($xml);
+
+        return $response->withHeader(
+            'Content-Type',
+            'application/xml; charset=UTF-8'
+        );
+    }
+    public function html($request, $tpl, $data = null, $page_cache = null)
     {
 
         $smarty = new Smarty();
@@ -109,27 +200,17 @@ class Controller
             'image'       => get($_ENV, 'APP_META_IMAGE', ''),
             'url'         => $request->getUri(),
         ];
-        $smarty->assign('meta', $meta);
-
         if (! empty($data)) {
-
             foreach ($data as $key => $value) {
-
                 $smarty->assign($key, $value);
             }
 
             if (! empty($data['meta'])) {
-                $meta = [
-                    'title'       => get($data['meta'], 'title', get($_ENV, 'APP_TITLE', '')),
-                    'description' => get($data['meta'], 'description', get($_ENV, 'APP_DESCRIPTION', '')),
-                    'image'       => get($data['meta'], 'image', get($_ENV, 'APP_META_IMAGE', '')),
-                    'url'         => $request->getUri(),
-                ];
-
-                $smarty->assign('meta', $meta);
-
+                $meta = array_merge($meta, $data['meta']);
             }
         }
+
+        $smarty->assign('meta', $meta);
 
         $csrfContext = $_ENV['AJAX_CSRF_CONTEXT'];
         $csrf        = new CSRF($csrfContext);
@@ -138,7 +219,6 @@ class Controller
         $smarty->assign('csrfToken', $hash);
 
         $smarty->assign('isUserLoggedIn', ! empty($_SESSION['user_username']) ? 1 : 0);
-        $smarty->assign('userRole', $this->getUserRole());
 
         $ENV = get($_ENV, 'APP_ENV', 'production');
         $smarty->assign('isProduction', $ENV == 'production' ? 1 : 0);
@@ -161,10 +241,18 @@ class Controller
     public function minify_html($tpl_output, $template)
     {
         $ENV = get($_ENV, 'APP_ENV', 'production');
-        if ($ENV == 'production') {
-            $tpl_output = preg_replace('![\t ]*[\r\n]+[\t ]*!', '', $tpl_output);
 
+        if ($ENV === 'production') {
+            // Remove whitespace between HTML tags only
+            $tpl_output = preg_replace('/>\s+</', '><', $tpl_output);
+
+            // Remove spaces and tabs at line boundaries, not within attributes
+            $tpl_output = preg_replace('/^[\t ]+|[\t ]+$/m', '', $tpl_output);
+
+            // Remove empty lines
+            $tpl_output = preg_replace('/\n{2,}/', "\n", $tpl_output);
         }
+
         return $tpl_output;
     }
 
@@ -221,12 +309,6 @@ class Controller
         $src = ($baseUrl ? $baseUrl . '/' : '') . $file . '?v=' . $version;
 
         return '<link href="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" rel="stylesheet" />';
-    }
-
-    public function getUserRole()
-    {
-        // Example from session
-        return $_SESSION['user_role'] ?? 'guest';
     }
 
 }

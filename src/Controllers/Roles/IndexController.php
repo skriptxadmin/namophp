@@ -11,7 +11,7 @@ class IndexController extends Controller
     public function index(Request $request, Response $response, array $args): Response
     {
 
-        return $this->view($request, 'roles/index');
+        return $this->html($request, 'roles/index');
     }
 
     public function list(Request $request, Response $response, array $args): Response

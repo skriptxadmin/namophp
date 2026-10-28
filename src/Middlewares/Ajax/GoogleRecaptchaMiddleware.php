@@ -24,7 +24,9 @@ class GoogleRecaptchaMiddleware implements MiddlewareInterface
             return $response;
         }
 
-        if (!empty($_SESSION['userId'])) {
+        $username = get($_SESSION, 'user_username');
+
+        if (!empty($username)) {
 
             $response = new \Slim\Psr7\Response();
 

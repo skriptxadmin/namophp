@@ -23,6 +23,6 @@ class IndexController extends Controller
 
       
 
-        return $this->view($request, 'guest/index');
+        return $this->html($request, 'guest/index');
     }
 }

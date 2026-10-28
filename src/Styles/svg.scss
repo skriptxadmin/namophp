@@ -1,0 +1,27 @@
+
+.svg-success svg{
+  stroke: rgb(var(--bs-success-rgb));
+}
+.svg-danger svg{
+  stroke: rgb(var(--bs-danger-rgb));
+}
+.svg-white svg{
+  stroke: #fff;
+}
+.btn-outline-danger svg {
+  stroke: rgb(var(--bs-danger-rgb));
+}
+
+.btn-outline-danger:hover svg {
+  stroke: #fff;
+}
+.btn-outline-warning svg {
+  stroke: rgb(var(--bs-warning-rgb));
+}
+
+.btn-outline-warning:hover svg {
+  stroke: #fff;
+}
+.svg-white svg{
+  stroke: white;
+}

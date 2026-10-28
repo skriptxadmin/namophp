@@ -14,13 +14,13 @@ class ErrorController extends Controller{
     {
 
 
-        return $this->view($request, 'error/404');
+        return $this->html($request, 'error/404');
     }
 
     public function web_app_error(Request $request, Response $response, $args)
     {
 
 
-        return $this->view($request, 'error/500');
+        return $this->html($request, 'error/500');
     }
 }

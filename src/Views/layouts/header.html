@@ -2,13 +2,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <base href="{$url}/" />
 <link rel="icon" href="{env var='APP_FAVICON'}" type="image/x-icon">
-{nocache}
-<meta name="csrf-token" content="{$csrfToken}">
-{/nocache}
 
+
+
+{nocache}
 {if $isProduction}
 <script src="https://www.google.com/recaptcha/api.js?render={env var='GOOGLE_CAPTCHA_SITE_KEY'}"></script>
 {/if}
+
+<meta name="csrf-token" content="{$csrfToken}">
 
 <!-- Primary Meta Tags -->
 <title>{$meta['title']}</title>
@@ -28,16 +30,23 @@
 <meta property="twitter:title" content="{$meta['title']}" />
 <meta property="twitter:description" content="{$meta['description']}" />
 <meta property="twitter:image" content="{$meta['image']}" />
-
+{/nocache}
 
 
 
 
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Poppins:wght@400;500&family=Pacifico&display=swap" rel="stylesheet">
 
-{css file="node_modules/bootstrap/dist/css/bootstrap.min.css"}
-{css file="styles/app.css"}
+{css file="libs/core.css"}
+{css file="libs/datatables.css"}
+{css file="libs/datepicker.css"}
+{css file="libs/lightbox.css"}
+{css file="libs/placeholder.css"}
+{css file="libs/select2.css"}
 
+
+
+{css file="styles/app.css"}
 {block name="styles"}
 
 {/block}

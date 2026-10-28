@@ -6,11 +6,16 @@ return [
         "name" => "Administrator",
     ],
     [
-        "slug" => "agent",
-        "name" => "Agent",
+        "slug" => "bdm",
+        "name" => "Business Development Manager",
+    ],
+    
+    [
+        "slug" => "bde",
+        "name" => "Business Development Executive",
     ],
     [
-        "slug" => "client",
-        "name" => "Client",
+        "slug" => "subscriber",
+        "name" => "Subscriber",
     ],
 ];

@@ -11,19 +11,14 @@ return [
         "INT(10)",
         "NOT NULL",
     ],
-    'username'       => [
-        "VARCHAR(50)",
+     'username'       => [
+        "VARCHAR(60)",
         "NOT NULL",
-        'UNIQUE',
+        "UNIQUE"
     ],
     'fullname'       => [
         "VARCHAR(40)",
         "NOT NULL",
-    ],
-    'email'          => [
-        "VARCHAR(40)",
-        "NOT NULL",
-        "UNIQUE",
     ],
     'mobile'         => [
         "VARCHAR(10)",
@@ -38,14 +33,6 @@ return [
         "DATETIME",
         "NULL",
     ],
-    'refresh_token'=>[
-        'TEXT',
-        'NULL'
-    ],
-    'refresh_token_updated_at'=>[
-        'DATETIME',
-        'NULL'
-    ],
     'otp'            => [
         "VARCHAR(6)",
         "NULL",
@@ -58,6 +45,20 @@ return [
         "DATETIME",
         "NULL",
     ],
+    'created_by'     => [
+        "INT",
+        "NULL",
+        "DEFAULT 1",
+    ],
+    'updated_by'     => [
+        "INT",
+        "NULL",
+        "DEFAULT 1",
+    ],
+    'deleted_by'     => [
+        "INT",
+        "NULL",
+    ],
     'created_at'     => [
         "TIMESTAMP",
         "DEFAULT CURRENT_TIMESTAMP",
@@ -66,5 +67,9 @@ return [
         "TIMESTAMP",
         "DEFAULT CURRENT_TIMESTAMP",
         "ON UPDATE CURRENT_TIMESTAMP",
+    ],
+    'deleted_at'     => [
+        "DATETIME",
+        "NULL",
     ],
 ];

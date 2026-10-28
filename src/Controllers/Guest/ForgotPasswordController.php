@@ -21,7 +21,7 @@ class ForgotPasswordController extends Controller
     public function index(Request $request, Response $response, array $args): Response
     {
 
-        return $this->view($request, 'guest/forgot-password');
+        return $this->html($request, 'guest/forgot-password');
     }
 
     public function verify(Request $request, Response $response, array $args): Response
@@ -29,7 +29,7 @@ class ForgotPasswordController extends Controller
         $validator = new \App\Helpers\Validator();
         $data      = $request->getParsedBody();
         $rules     = [
-            'username' => 'required',
+            'mobile' => 'required|exists:users,mobile',
         ];
         $messages = [
 
@@ -44,20 +44,17 @@ class ForgotPasswordController extends Controller
         $otp    = $random->otp();
 
         $where = [
-            'OR' => [
-                'username' => $validData->username,
-                'email'    => $validData->username,
-                'mobile'   => $validData->username,
-            ],
+            'mobile' => $validData->mobile,
+
         ];
-        $user = (object) $this->db->get('users', ['id', 'otp_created_at', 'username'], $where);
+        $user = (object) $this->db->get('users', ['id', 'mobile' ,'otp_created_at', 'username'], $where);
 
         if (empty($user) || empty($user->id)) {
 
             return $this->json(['error' => 'Invalid user'], 422);
         }
 
-        $uid = $user->id;
+        $user_id = $user->id;
 
         if ($user->otp_created_at) {
 
@@ -81,7 +78,7 @@ class ForgotPasswordController extends Controller
         ];
 
         try {
-            $this->db->update('users', $args, ['id' => $uid]);
+            $this->db->update('users', $args, ['id' => $user_id]);
 
         } catch (\Exception $e) {
 
@@ -90,25 +87,17 @@ class ForgotPasswordController extends Controller
 
         $ENV = get($_ENV, 'APP_ENV', 'production');
 
-        $res = ['message' => 'OTP generated successful'];
+        $res = ['message' => 'OTP generated successful',
+            'username'          => $user->username,
+        ];
 
         if ($ENV === 'production') {
-
-            $args = [
-                'from'                  => 'Skriptx <postmaster@skriptx.com>',
-                'to'                    => $user->email,
-                'template'              => 'otp for skriptx',
-                'h:X-Mailgun-Variables' => '{"otp": ' . $otp . ',"name":"' . $user->fullname . '"}',
-            ];
-
-            $mail = new \App\Helpers\Mailgun;
-
-            $mail->send($args);
-
+            // send otp
+            $fast2sms = new \App\Helpers\Fast2Sms;
+            $fast2sms->send($user->mobile, $otp);
             return $this->json($res);
-        }
 
-        $res['redirect'] = $_ENV['APP_URL'] . '/guest/set-password?username=' . $user->username . '&otp=' . $otp;
+        }
 
         $res['otp'] = $otp;
 

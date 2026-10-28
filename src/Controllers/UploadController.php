@@ -16,7 +16,7 @@ class UploadController extends Controller
         $user_id = $request->getAttribute('user_id');
 
         $rules = [
-            'file'   => 'required|uploaded_file:0,5M',
+            'file'   => 'required|uploaded_file:0,2M',
             'folder' => 'nullable',
         ];
         $messages = [
@@ -83,7 +83,7 @@ class UploadController extends Controller
         ];
         $this->db->insert('uploads', $args);
 
-        $url = $_ENV['APP_URL'] . '/uploads/' . $key;
+        $url = $_ENV['BACKEND_URL'] . '/uploads/' . $key;
 
         return $this->json(['url' => $url, 'key' => $key, 'mime' => $realMimeType]);
     }
@@ -96,6 +96,7 @@ class UploadController extends Controller
         $data = $request->getParsedBody();
 
         $rules = [
+            
             'key' => 'required|exists:uploads,key',
         ];
         $messages = [
@@ -111,21 +112,13 @@ class UploadController extends Controller
 
         $validData = $validator->validData;
 
-        $s3 = new \App\Helpers\S3;
+        $key = $validData->key;
 
-        if (! $s3->doesObjectExist($validData->key)) {
+        $mime= $this->db->get('uploads', 'mime', ['key' => $key]);
 
-            return $this->json(['error' => 'Invalid file to get'], 422);
-        }
+        $url = $_ENV['BACKEND_URL'] . '/uploads/' . $validData->key;
 
-        $url = $s3->getPresignedUrl($validData->key);
-
-        if (empty($url)) {
-
-            return $this->json(['error' => 'Unable to retrieve url'], 409);
-        }
-
-        return $this->json(['url' => $url]);
+        return $this->json(compact('key', 'url', 'mime'));
 
     }
 

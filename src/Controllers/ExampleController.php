@@ -21,7 +21,7 @@ class ExampleController extends Controller
 
         // Sample for html output
 
-        return $this->view($request, 'home/index');
+        return $this->html($request, 'home/index');
     }
 
     public function json(Request $request, Response $response, array $args): Response

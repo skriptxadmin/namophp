@@ -15,7 +15,7 @@ class GuestMiddleware implements MiddlewareInterface
         // Optional: Handle the incoming request
         // ...
 
-        if(!empty($_SESSION['userId'])){
+        if(!empty($_SESSION['user_username'])){
             $payload = json_encode(['error' => 'You are not authorized to perform this action']);
 
             $response = new \Slim\Psr7\Response();

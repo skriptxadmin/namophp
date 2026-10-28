@@ -3,7 +3,7 @@
 <head>
    {include file="layouts/header.html"}
 </head>
-<body class="{$pageClass}">
+<body {nocache}class="{$pageClass}"{/nocache}>
       
    {include file="components/nav-primary.html"}
 
@@ -12,7 +12,8 @@
 
    </main>
 
-   {include file="layouts/footer.html"}
+   {include file="layouts/footer-1.html"}
+   {include file="layouts/footer-2.html"}
 
 </body>
 </html>

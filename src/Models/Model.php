@@ -1,17 +1,9 @@
 <?php 
 namespace App\Models;
 
+use App\Helpers\DB;
 
-class Model{
+class Model extends DB{
 
-    public $db;
-
-
-    public function __construct(){
-
-        $dbconn = new \App\Helpers\DB;
-
-        $this->db = $dbconn->db;
-
-    }
+   
 }

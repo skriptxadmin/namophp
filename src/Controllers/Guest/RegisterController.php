@@ -21,7 +21,7 @@ class RegisterController extends Controller
     public function index(Request $request, Response $response, array $args): Response
     {
 
-        return $this->view($request, 'guest/register');
+        return $this->html($request, 'guest/register');
     }
 
     public function verify(Request $request, Response $response, array $args): Response
@@ -29,10 +29,8 @@ class RegisterController extends Controller
         $validator = new \App\Helpers\Validator();
         $data      = $request->getParsedBody();
         $rules     = [
-            'email'    => 'required|email|unique:users,email',
-            'mobile'   => 'required|regex:/^[0-9]*$/|unique:users,mobile',
-            'fullname' => 'required|min:3|max:30',
-            'username' => 'required|min:3|max:30|unique:users,username',
+            'mobile'   => 'required|regex:/^[6-9][0-9]{9}$/|unique:users,mobile',
+            'fullname' => 'required|min:3|max:40|regex:/^[A-Za-z\s]+$/',
         ];
         $messages = [
 
@@ -46,14 +44,14 @@ class RegisterController extends Controller
         $random = new \App\Helpers\Random;
         $otp    = $random->otp();
 
-        $role_id =  $this->db->get('roles', 'id', ['name' => 'Client']);
+        $role_id = $this->db->get('roles', 'id', ['name' => 'Subscriber']);
 
-        $username = $validData->username;
+        $userHelper = new \App\Helpers\User;
+
         $args = [
-            'username'       => $username,
+            'username'       => $userHelper->create_username($validData->fullname),
             'password'       => password_hash($random->string(), PASSWORD_DEFAULT),
             'fullname'       => $validData->fullname,
-            'email'          => $validData->email,
             'mobile'         => $validData->mobile,
             'role_id'        => $role_id,
             'otp'            => $otp,
@@ -61,7 +59,20 @@ class RegisterController extends Controller
         ];
 
         try {
-            $this->db->insert('users', $args);
+            $where = [
+                'mobile' => $validData->mobile,
+
+            ];
+            $existing_id = $this->db->get('users_temp', 'id', $where);
+
+            if ($existing_id) {
+
+                $this->db->update('users_temp', $args, ['id' => $existing_id]);
+            } else {
+
+                $this->db->insert('users_temp', $args);
+
+            }
 
         } catch (\Exception $e) {
 
@@ -70,31 +81,20 @@ class RegisterController extends Controller
 
         $ENV = get($_ENV, 'APP_ENV', 'production');
 
-        $res = ['message' => 'User registration successful'];
+        $res = [
+            'message'  => 'User registration successful',
+            'username' => $args['username'],
+        ];
 
         if ($ENV === 'production') {
 
-           $args = [
-                'from'                  => 'Skriptx <postmaster@skriptx.com>',
-                'to'                    => $validData->email,
-                'template'              => 'otp for skriptx',
-                'h:X-Mailgun-Variables' => '{"otp": ' . $otp . ',"name":"' . $validData->fullname . '"}',
-            ];
-
-            $mail = new \App\Helpers\Mailgun;
-
-            $mail->send($args);
-
-            $res['redirect'] = $_ENV['APP_URL'].'/guest/set-password?username='.$username;
-
+            $fast2sms = new \App\Helpers\Fast2Sms;
+            $fast2sms->send($validData->mobile, $otp);
             return $this->json($res);
-            
+
         }
-
-        $res['redirect'] = $_ENV['APP_URL'].'/guest/set-password?username='.$username.'&otp='.$otp;
-
         $res['otp'] = $otp;
-        
+
         return $this->json($res);
 
     }

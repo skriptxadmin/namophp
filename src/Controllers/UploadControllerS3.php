@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Controllers\Controller;
+use Carbon\Carbon;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -70,9 +71,35 @@ class UploadControllerS3 extends Controller
             return $this->json(['error' => 'Unable to upload file.'], 409);
         }
 
-        $this->db->insert('uploads', ['user_id' => $user_id, 'key' => $key]);
+        $mime = $uploadedFile->getClientMediaType();
 
-        return $this->json(['key' => $key]);
+        $s3 = new \App\Helpers\S3;
+
+        if (! $s3->doesObjectExist($key)) {
+
+            return $this->json(['error' => 'Invalid file to get'], 422);
+        }
+
+        $url = $s3->getPresignedUrl($key, 1440);
+
+        if (empty($url)) {
+
+            return $this->json(['error' => 'Unable to retrieve url'], 409);
+        }
+
+        $args = [
+            'filename'         => $filename,
+            'user_id'          => $user_id,
+            'created_by'       => $user_id,
+            'key'              => $key,
+            'mime'             => $mime,
+            'size'             => $uploadedFile->getSize(),
+            's3url'            => $url,
+            's3url_created_at' => Carbon::now()->toDateTimeString(),
+        ];
+        $this->db->insert('uploads', $args);
+
+        return $this->json(['url' => $url, 'key' => $key, 'mime' => $mime]);
     }
 
     public function get(Request $request, Response $response, array $args): Response
@@ -98,21 +125,44 @@ class UploadControllerS3 extends Controller
 
         $validData = $validator->validData;
 
+        $row = $this->db->get('uploads', ['s3url', 's3url_created_at','mime', 'key'], ['key' => $validData->key]);
+
+        if ($row['s3url'] && $row['s3url_created_at']) {
+
+            $createdAt = Carbon::parse($row['s3url_created_at']);
+
+            $now = Carbon::now();
+
+            if ($createdAt->diffInSeconds($now) < (23 * 60 + 55)) {
+                return $this->json([
+                    'url' => $row['s3url'],
+                    'mime' => $row['mime'],
+                    'key' => $row['key']
+                ]);
+            }
+        }
+
         $s3 = new \App\Helpers\S3;
 
-        if(!$s3->doesObjectExist($validData->key)){
+        if (! $s3->doesObjectExist($validData->key)) {
 
             return $this->json(['error' => 'Invalid file to get'], 422);
         }
 
-        $url = $s3->getPresignedUrl($validData->key);
+        $url = $s3->getPresignedUrl($validData->key, 1440);
 
         if (empty($url)) {
 
             return $this->json(['error' => 'Unable to retrieve url'], 409);
         }
 
-        return $this->json(['url' => $url]);
+        $args = [
+            's3url'            => $url,
+            's3url_created_at' => Carbon::now()->toDateTimeString(),
+        ];
+        $this->db->update('uploads', $args, ['key' => $validData->key]);
+
+        return $this->json(['url' => $url,'mime'=>$row['mime'], 'key'=>$row['key']]);
 
     }
 
@@ -142,16 +192,16 @@ class UploadControllerS3 extends Controller
 
         $user_id = $request->getAttribute('user_id');
 
-        $count = $this->db->count('uploads', ['key' => $validData->key, 'user_id'=>$user_id]);
+        $count = $this->db->count('uploads', ['key' => $validData->key, 'user_id' => $user_id]);
 
-        if(!$count){
+        if (! $count) {
 
             return $this->json(['error' => 'Invalid authorization to delete'], 422);
         }
 
         $s3 = new \App\Helpers\S3;
 
-        if(!$s3->doesObjectExist($validData->key)){
+        if (! $s3->doesObjectExist($validData->key)) {
 
             return $this->json(['error' => 'Invalid file to delete'], 422);
         }
@@ -167,7 +217,7 @@ class UploadControllerS3 extends Controller
             return $this->json(['error' => 'Unable to remove file']);
         }
 
-        $this->db->update('uploads', ['user_id'=>-1], ['key' => $validData->key]);
+        $this->db->update('uploads', ['user_id' => -1], ['key' => $validData->key]);
 
         return $this->json(['message' => 'Removed file successfully']);
 

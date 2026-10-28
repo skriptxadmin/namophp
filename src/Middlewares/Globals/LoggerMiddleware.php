@@ -23,9 +23,9 @@ class LoggerMiddleware implements MiddlewareInterface
 
             $context = [];
 
-            if(!empty($_SESSION['userId'])){
+            if(!empty($_SESSION['user_id'])){
 
-                $context['user'] = $_SESSION['userId'];
+                $context['user'] = $_SESSION['user_id'];
             }
 
             $logger->access($uri, $context);

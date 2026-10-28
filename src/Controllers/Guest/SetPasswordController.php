@@ -27,7 +27,7 @@ class SetPasswordController extends Controller
             return $this->redirect($request, 'web.404');
        }
 
-        return $this->view($request, 'guest/set-password', compact('queryParams'));
+        return $this->html($request, 'guest/set-password', compact('queryParams'));
     }
 
 
@@ -61,7 +61,7 @@ class SetPasswordController extends Controller
             return $this->json(['error' => 'Invalid user'], 422);
         }
 
-        $uid = $user->id;
+        $user_id = $user->id;
 
         $createdAt = Carbon::parse($user->otp_created_at);
 
@@ -80,7 +80,7 @@ class SetPasswordController extends Controller
             'verified_at' => Carbon::now()->toDateTimeString()
         ];
 
-        $this->db->update('users', $args, ['id' => $uid]);
+        $this->db->update('users', $args, ['id' => $user_id]);
 
         return $this->json([
             'message' => 'Password updated successful',

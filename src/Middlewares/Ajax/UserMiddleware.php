@@ -54,7 +54,6 @@ class UserMiddleware implements MiddlewareInterface
         }
 
         $request = $request->withAttribute('user_id', $user['id']);
-        $request = $request->withAttribute('user', $user);
 
         return $handler->handle($request);
     }

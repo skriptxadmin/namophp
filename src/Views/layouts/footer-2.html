@@ -1,0 +1,39 @@
+<script>
+    window.appLocals = {
+    version: "{env var='APP_VERSION'}",
+    url: "{$url}",
+    ajax: "{$url}/ajax/",
+    recaptchaSiteKey: "{env var='GOOGLE_CAPTCHA_SITE_KEY'}",
+  };
+</script>
+{nocache}
+<script>
+  window.appLocals['isUserLoggedIn'] = {$isUserLoggedIn};
+  window.appLocals['production'] = {$isProduction};
+  window.pageLocals = {$pageLocals|default:[]|json_encode nofilter};
+</script>
+{/nocache}
+
+{js file="libs/core.js"}
+
+{js file="libs/validation.js"}
+
+{js file="libs/datatables.js"}
+
+{js file="libs/datepicker.js"}
+
+{js file="libs/lightbox.js"}
+
+{js file="libs/select2.js"}
+
+{js file="libs/easyqrcode.js"}
+
+{js file="scripts/app.js"}
+
+{if $isUserLoggedIn}
+{js file="scripts/user.js"}
+{/if}
+
+
+{block name="scripts"}{/block}
+

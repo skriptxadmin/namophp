@@ -11,13 +11,14 @@ class RateLimitMiddleware implements MiddlewareInterface
 {
 
     // Limits (adjust as needed)
-    private $limitPerMinuteLoggedIn = 60;   // per user ID
-    private $limitPerMinuteGuest    = 20;   // per session
+    private $limitPerMinuteLoggedIn = 100;   // per user ID
+    private $limitPerMinuteGuest    = 100;   // per session
     private $limitPerMinuteIP       = 100;  // per IP
 
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+
         $userId  = $_SESSION['user_id'] ?? null;  // Adjust according to your auth system
         $session = session_id();
         $ip      = $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown';
